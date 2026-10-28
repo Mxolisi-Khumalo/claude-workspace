@@ -1,0 +1,452 @@
+/*
+ * Styles for the detail and legal pages (services, work, privacy, terms, 404).
+ * Everything is prefixed `mkp-` to stay out of other components' way and
+ * reads the design tokens from globals.css.
+ */
+
+/* ---------- Type helpers ---------- */
+
+/* Ghost numerals/words: gradient-filled rather than stroked, because
+   -webkit-text-stroke exposes the overlapping contours of variable fonts. */
+.mkp-ghost {
+  color: transparent;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--glow, var(--accent)) 60%, transparent) 0%,
+    color-mix(in oklab, var(--glow, var(--accent)) 12%, transparent) 70%,
+    transparent 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.mkp-ghost-muted {
+  color: rgb(255 255 255 / 0.07);
+}
+
+.mkp-measure {
+  max-width: 68ch;
+}
+
+/* Plain figures for prices and big numerals: Hubot Sans draws a barred zero,
+   which reads oddly in prices, so numerals use Mona Sans at the same width. */
+.mkp-figures {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-feature-settings: normal;
+}
+
+/* ---------- Glow cards (cursor-following gradient border) ---------- */
+
+.mkp-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.008) 60%),
+    rgb(13 16 21 / 0.72);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.4s,
+    background-color 0.4s;
+}
+
+/* Static hairline highlight along the top edge — visible on every device. */
+.mkp-card > .mkp-card-edge {
+  position: absolute;
+  inset: 0 18% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--glow, var(--accent)) 55%, transparent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.mkp-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(
+    380px circle at var(--mx, 50%) var(--my, -400px),
+    var(--glow, var(--accent)),
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.mkp-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    520px circle at var(--mx, 50%) var(--my, -400px),
+    color-mix(in oklab, var(--glow, var(--accent)) 10%, transparent),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.mkp-glow-group[data-active] .mkp-card::before,
+.mkp-card:hover::after {
+  opacity: 1;
+}
+
+.mkp-card:focus-within {
+  border-color: color-mix(in oklab, var(--glow, var(--accent)) 45%, transparent);
+}
+
+/* ---------- Chips ---------- */
+
+.mkp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+  background: rgb(13 16 21 / 0.6);
+  transition:
+    color 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.mkp-chip:hover {
+  color: var(--fg);
+  border-color: color-mix(in oklab, var(--glow, var(--accent)) 60%, transparent);
+  box-shadow: 0 0 24px -8px var(--glow, var(--accent));
+}
+
+/* ---------- Evidence strength tooltip ---------- */
+
+.mkp-tip {
+  position: relative;
+  display: inline-flex;
+}
+
+.mkp-tip-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  width: min(320px, 80vw);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.25s,
+    transform 0.35s var(--ease-out),
+    visibility 0.25s;
+}
+
+.mkp-tip:hover .mkp-tip-panel,
+.mkp-tip:focus-within .mkp-tip-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+/* ---------- FAQ accordion (native <details>) ---------- */
+
+.mkp-faq {
+  interpolate-size: allow-keywords;
+}
+
+.mkp-faq::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 0.5s var(--ease-out),
+    content-visibility 0.5s allow-discrete;
+}
+
+.mkp-faq[open]::details-content {
+  block-size: auto;
+}
+
+.mkp-faq summary {
+  list-style: none;
+}
+
+.mkp-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.mkp-faq .mkp-faq-icon {
+  transition: transform 0.5s var(--ease-out);
+}
+
+.mkp-faq[open] .mkp-faq-icon {
+  transform: rotate(45deg);
+}
+
+/* ---------- Process timeline ---------- */
+
+.mkp-step-node {
+  transition:
+    background-color 0.5s,
+    color 0.5s,
+    border-color 0.5s,
+    box-shadow 0.5s;
+  border-color: var(--glow, var(--accent));
+  color: var(--glow, var(--accent));
+  background: var(--bg);
+}
+
+.mkp-timeline[data-motion] [data-step]:not([data-active]) .mkp-step-node {
+  border-color: var(--line-strong);
+  color: var(--fg-subtle);
+}
+
+.mkp-timeline[data-motion] [data-step][data-active] .mkp-step-node {
+  background: var(--glow, var(--accent));
+  color: var(--bg);
+  box-shadow: 0 0 28px -4px var(--glow, var(--accent));
+}
+
+/* ---------- Generative cover art (used when a project has no screenshots) ---------- */
+
+/* Callers position it (relative / absolute inset-0) — no position here so
+   Tailwind utilities aren't overridden by this unlayered rule. */
+.mkp-art {
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg-elevated);
+}
+
+.mkp-art-blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(56px);
+  opacity: 0.55;
+  animation: mkp-drift 16s ease-in-out infinite alternate;
+}
+
+.mkp-art-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(255 255 255 / 0.22) 1px, transparent 1.2px);
+  background-size: 18px 18px;
+  mask-image: radial-gradient(ellipse at 60% 40%, black 10%, transparent 70%);
+}
+
+@keyframes mkp-drift {
+  from {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(8%, 6%, 0) scale(1.15);
+  }
+}
+
+/* ---------- Price swap ---------- */
+
+.mkp-price-in {
+  animation: mkp-price-in 0.6s var(--ease-out) both;
+}
+
+@keyframes mkp-price-in {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+    filter: blur(6px);
+  }
+}
+
+/* ---------- Lightbox ---------- */
+
+.mkp-lightbox {
+  animation: mkp-fade-in 0.35s var(--ease-out) both;
+}
+
+.mkp-lightbox-figure {
+  animation: mkp-zoom-in 0.55s var(--ease-out) both;
+}
+
+@keyframes mkp-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes mkp-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+}
+
+/* ---------- Legal prose ---------- */
+
+.mkp-prose {
+  color: var(--fg-muted);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  max-width: 68ch;
+}
+
+.mkp-prose > * + * {
+  margin-top: 1rem;
+}
+
+.mkp-prose h3 {
+  margin-top: 2rem;
+  color: var(--fg);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.mkp-prose strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.mkp-prose ul {
+  display: grid;
+  gap: 0.6rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.mkp-prose ul > li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.mkp-prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.15rem;
+  top: 0.75em;
+  width: 0.55rem;
+  height: 1px;
+  background: var(--accent);
+}
+
+.mkp-prose a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 70%, transparent);
+  text-underline-offset: 4px;
+  transition: color 0.2s;
+}
+
+.mkp-prose a:hover {
+  color: var(--accent);
+}
+
+.mkp-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.mkp-prose th,
+.mkp-prose td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.75rem 1rem 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mkp-prose th {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* ---------- 404 ---------- */
+
+.mkp-caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+  background: var(--accent);
+  animation: mkp-caret 1.1s steps(1) infinite;
+}
+
+@keyframes mkp-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.mkp-glitch {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mkp-glitch::before,
+  .mkp-glitch::after {
+    content: attr(data-text) / "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .mkp-glitch::before {
+    color: var(--violet);
+    animation: mkp-glitch-a 3.2s infinite steps(1);
+    clip-path: inset(12% 0 74% 0);
+  }
+
+  .mkp-glitch::after {
+    color: var(--sky);
+    animation: mkp-glitch-b 2.7s infinite steps(1);
+    clip-path: inset(58% 0 30% 0);
+  }
+}
+
+@keyframes mkp-glitch-a {
+  0%,
+  86%,
+  100% {
+    transform: none;
+    opacity: 0;
+  }
+  88% {
+    transform: translate(-3px, 1px);
+    opacity: 0.9;
+  }
+  92% {
+    transform: translate(3px, -1px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes mkp-glitch-b {
+  0%,
+  80%,
+  100% {
+    transform: none;
+    opacity: 0;
+  }
+  82% {
+    transform: translate(4px, 0);
+    opacity: 0.8;
+  }
+  86% {
+    transform: translate(-2px, 1px);
+    opacity: 0.8;
+  }
+}

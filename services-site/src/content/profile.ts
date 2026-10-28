@@ -30,13 +30,13 @@ export const profile: Profile = {
   bio: [
     "I'm a full-stack developer from Johannesburg and a WeThinkCode_ alumnus (National Diploma in Software Development, NQF 6), with four years of Information Technology studies at the University of Cape Town before that.",
     "By day I work as a Technology Associate on an enterprise SaaS platform (C#, .NET, TypeScript, React, SQL Server, Azure DevOps). Alongside that, I take on a small number of client projects where I can give each one proper attention.",
-    "I've also mentored more than 115 aspiring developers — which is why I explain technical decisions in plain language and leave every codebase better documented than I found it.",
+    "I've also mentored more than 115 bootcamp students — which is why I explain technical decisions in plain language and leave every codebase better documented than I found it.",
   ],
   stats: [
     { label: "Projects built across GitHub & GitLab", value: 60, suffix: "+" },
-    { label: "Developers mentored", value: 115, suffix: "+" },
+    { label: "Students mentored", value: 115, suffix: "+" },
     { label: "Years programming", value: 6, suffix: "+" },
-    { label: "Certifications", value: 25, suffix: "+" },
+    { label: "Courses & certifications", value: 20, suffix: "+" },
   ],
   credibility: [
     "WeThinkCode_ alumnus — National Diploma in Software Development (NQF 6)",

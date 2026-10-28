@@ -93,10 +93,19 @@ export function getPayments(): PaymentProvider {
   return payments;
 }
 
-/** Provider for a webhook route (`/api/webhooks/[provider]`); null unless it is the active one. */
-export function getPaymentProvider(name: string): PaymentProvider | null {
+let paystackForWebhooks: PaystackPayments | undefined;
+
+/**
+ * Adapter for a webhook route (`/api/webhooks/<name>`): the active provider,
+ * or Paystack whenever its key is set (so late webhooks still verify after a
+ * switch). Throws IntegrationConfigError when `name` is not available.
+ */
+export function getPaymentProvider(name: string): PaymentProvider {
   const active = getPayments();
-  return active.name === name ? active : null;
+  if (active.name === name) return active;
+  const key = process.env.PAYSTACK_SECRET_KEY;
+  if (name === "paystack" && key && !isDemoMode()) return (paystackForWebhooks ??= new PaystackPayments(key));
+  throw new IntegrationConfigError(`Payment provider "${name}" is not active.`);
 }
 
 /** True once the demo checkout has posted a successful (signed) mock webhook for `reference`. */

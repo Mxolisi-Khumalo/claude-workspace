@@ -13,8 +13,18 @@ export const isDemoMode = () => process.env.DEMO_MODE === "true";
 /** Absolute site origin without a trailing slash. */
 export const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
-/** HMAC key for document tokens and mock webhooks. */
-export const sessionSecret = () => process.env.SESSION_SECRET || "dev-secret";
+let warnedDefaultSecret = false;
+
+/** HMAC key for document tokens and mock webhooks. Warns once in production when it is the public default. */
+export function sessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production" && !warnedDefaultSecret) {
+    warnedDefaultSecret = true;
+    console.warn("[security] SESSION_SECRET is not set: document links and mock webhooks are signed with the public default key.");
+  }
+  return "dev-secret";
+}
 
 export const hmacHex = (algorithm: "sha256" | "sha512", key: string, data: string) =>
   createHmac(algorithm, key).update(data, "utf8").digest("hex");

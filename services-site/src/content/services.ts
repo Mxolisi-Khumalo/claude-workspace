@@ -45,22 +45,22 @@ export const services: Service[] = [
     packages: [
       {
         name: "Launch",
-        priceFromZar: 18000,
-        priceFromUsd: 1000,
+        priceFromZar: 16000,
+        priceFromUsd: 900,
         timeline: "2–3 weeks",
         includes: ["Single-page site (up to 5 sections)", "Scroll-reveal animation and micro-interactions", "Responsive and reduced-motion versions", "Deployment and domain setup"],
       },
       {
         name: "Signature",
-        priceFromZar: 45000,
-        priceFromUsd: 2500,
+        priceFromZar: 42000,
+        priceFromUsd: 2350,
         timeline: "4–6 weeks",
         includes: ["Up to 7 pages", "Custom cursor and magnetic interactions", "Scroll-driven storytelling sections", "Content managed from simple files or a headless CMS", "Performance budget and Lighthouse report"],
       },
       {
         name: "Immersive",
-        priceFromZar: 85000,
-        priceFromUsd: 4800,
+        priceFromZar: 75000,
+        priceFromUsd: 4200,
         timeline: "6–10 weeks",
         includes: ["Everything in Signature", "WebGL / 3D hero or interactive scene", "Bespoke page transitions", "Advanced motion design system", "30 days of post-launch support"],
       },
@@ -70,7 +70,7 @@ export const services: Service[] = [
         project: "teddy.goodfella — immersive artist site",
         repoUrl: `${GH}/teddy.goodfella`,
         proofPoint:
-          "A scroll-driven 2.5D hero with cursor and device-tilt parallax, a state-aware custom cursor, magnetic calls to action and a designed reduced-motion version, built in Next.js and TypeScript (phase one of the site).",
+          "An in-progress immersive hero (phase one, not yet launched): scroll-driven 2.5D layers with cursor and device-tilt parallax, a state-aware custom cursor, a magnetic call to action and a reduced-motion version, built in Next.js and TypeScript.",
         fileRef: "teddy.goodfella/src/motion/ScrollScene.tsx",
       },
       {
@@ -90,7 +90,7 @@ export const services: Service[] = [
         project: "Neon Combat: Hyper Edition",
         repoUrl: `${GH}/Fighting-game`,
         proofPoint:
-          "A browser fighting game with a fixed-timestep loop, frame-data combat, a CPU opponent and procedurally generated audio — real-time animation craft without a game engine.",
+          "A browser fighting game (listed on the portfolio as Shadow Fight Game) with a fixed-timestep loop, frame data for normal attacks, a CPU opponent and procedurally generated audio — real-time animation craft without a game engine.",
         fileRef: "Fighting-game/fighting_game.html",
         image: "/images/work/neon-combat.webp",
       },
@@ -113,7 +113,7 @@ export const services: Service[] = [
     title: "Web applications & MVPs",
     tagline: "From idea to a working product your users can log into — fast, typed and tested.",
     priority: 2,
-    evidenceStrength: "strong",
+    evidenceStrength: "moderate",
     accent: "violet",
     description: [
       "When you need software rather than a brochure — a booking flow, a dashboard, a document tool or a SaaS MVP — I build full-stack web applications with clear data models, typed code and the tests that keep them working.",
@@ -144,22 +144,22 @@ export const services: Service[] = [
     packages: [
       {
         name: "MVP Sprint",
-        priceFromZar: 45000,
-        priceFromUsd: 2500,
+        priceFromZar: 40000,
+        priceFromUsd: 2200,
         timeline: "4–6 weeks",
         includes: ["One core user workflow end to end", "Authentication and roles", "Database and REST API", "Deployed staging and production environments"],
       },
       {
         name: "Product Build",
-        priceFromZar: 95000,
-        priceFromUsd: 5500,
+        priceFromZar: 85000,
+        priceFromUsd: 4700,
         timeline: "8–12 weeks",
         includes: ["Multiple workflows and an admin dashboard", "Third-party integrations (payments, email, storage)", "Automated tests for business logic", "Documentation and handover"],
       },
       {
         name: "Feature Retainer",
-        priceFromZar: 18000,
-        priceFromUsd: 1000,
+        priceFromZar: 15000,
+        priceFromUsd: 850,
         timeline: "Monthly",
         includes: ["Up to 30 hours of development per month", "Bug fixes and small features", "Fortnightly check-in", "Cancel any time"],
       },
@@ -169,7 +169,7 @@ export const services: Service[] = [
         project: "DeskSign — PDF e-signature app",
         repoUrl: `${GH}/DeskSign-App`,
         proofPoint:
-          "An Angular + TypeScript app where users upload a PDF, drag signature and form fields onto any page, sign by drawing, typing or uploading, and download a flattened signed PDF — with undo/redo and guided signing.",
+          "An Angular + TypeScript app where users upload a PDF, drag signature and form fields onto any page, sign by drawing, typing or uploading a PNG, and download a flattened signed PDF — with undo/redo and guided signing.",
         fileRef: "DeskSign-App/src/app/pages/document-preview/document-preview.ts",
         image: "/images/work/desksign.webp",
       },
@@ -177,7 +177,7 @@ export const services: Service[] = [
         project: "Self-Storage Platform",
         repoUrl: `${GH}/Self-Storage-Platform`,
         proofPoint:
-          "A booking platform where customers browse units by city and reserve a date range; the server calculates every price and ignores any amount sent by the browser.",
+          "A booking platform (team capstone) where customers browse units by city and reserve a date range; the booking endpoint prices every reservation on the server from the unit record.",
         fileRef: "Self-Storage-Platform/src/storage/book.py",
         image: "/images/work/self-storage.webp",
       },
@@ -203,7 +203,7 @@ export const services: Service[] = [
     accent: "sky",
     description: [
       "Good backends are boring in the best way: predictable, secure and cheap to run. I design REST APIs and serverless architectures on AWS — Lambda, API Gateway, DynamoDB, Cognito, S3 and CloudFront — and define the whole stack as code so environments are reproducible.",
-      "Correctness comes first. That means atomic writes so inventory can never be oversold, identity taken from verified tokens rather than request bodies, least-privilege permissions per function, consistent error responses that never leak internals, and a test suite that runs without touching a real AWS account.",
+      "Correctness comes first. That means atomic writes so inventory can't be oversold, prices calculated on the server, ownership checks that don't reveal whether a record exists, least-privilege permissions per function, error responses that never leak internals, and a test suite that runs without touching a real AWS account.",
       "I can also review and harden an existing backend: finding race conditions, missing authorisation checks and fragile infrastructure before your customers do.",
     ],
     idealFor: [
@@ -231,22 +231,22 @@ export const services: Service[] = [
     packages: [
       {
         name: "API Starter",
-        priceFromZar: 30000,
-        priceFromUsd: 1700,
+        priceFromZar: 22000,
+        priceFromUsd: 1250,
         timeline: "2–4 weeks",
         includes: ["REST API for one domain area", "Database and authentication", "Infrastructure as code", "Unit tests and CI"],
       },
       {
         name: "Platform",
-        priceFromZar: 70000,
-        priceFromUsd: 4000,
+        priceFromZar: 55000,
+        priceFromUsd: 3000,
         timeline: "6–8 weeks",
         includes: ["Multiple services and data stores", "Secure static hosting for your front end", "Tracing, throttling and alerts", "Staging and production environments"],
       },
       {
         name: "Audit & Harden",
-        priceFromZar: 15000,
-        priceFromUsd: 850,
+        priceFromZar: 12000,
+        priceFromUsd: 650,
         timeline: "1–2 weeks",
         includes: ["Code and infrastructure review", "Prioritised findings report", "Fixes for the top issues", "Test coverage for critical paths"],
         purchasable: true,
@@ -257,7 +257,7 @@ export const services: Service[] = [
         project: "Self-Storage Platform",
         repoUrl: `${GH}/Self-Storage-Platform`,
         proofPoint:
-          "8 Python Lambda functions behind a Cognito-secured API Gateway, 3 DynamoDB tables, and an S3 + CloudFront front end — the entire stack defined in one AWS SAM template.",
+          "8 Python Lambda functions behind an API Gateway with a Cognito authorizer, 3 DynamoDB tables, and an S3 + CloudFront front end — the entire stack defined in one AWS SAM template (a team capstone, later reworked).",
         fileRef: "Self-Storage-Platform/src/template.yaml",
       },
       {
@@ -270,7 +270,7 @@ export const services: Service[] = [
       {
         project: "Self-Storage Platform",
         repoUrl: `${GH}/Self-Storage-Platform`,
-        proofPoint: "86 automated unit tests run against an in-memory DynamoDB (moto), plus lint and template-validation in CI.",
+        proofPoint: "86 automated unit tests (most against an in-memory DynamoDB via moto), plus linting and CloudFormation template validation in CI.",
         fileRef: "Self-Storage-Platform/src/tests/unit",
       },
       {
@@ -296,7 +296,7 @@ export const services: Service[] = [
     accent: "amber",
     description: [
       "Paperwork is where many small businesses lose hours every week. I build tools that generate, fill and sign documents: quote and invoice PDFs created from your data, drag-and-drop signing workflows, and completion certificates you can file.",
-      "The signing work runs in the browser with precise, resolution-independent field placement and flattened output, and the generation work powers this site's own quotes and invoices.",
+      "The signing work runs in the browser with resolution-independent field placement and flattened output, and the generation work powers this site's own quotes and invoices.",
       "Where you need legally robust digital signatures, I integrate a certified signing provider rather than reinventing compliance.",
     ],
     idealFor: [
@@ -321,15 +321,15 @@ export const services: Service[] = [
     packages: [
       {
         name: "Templates",
-        priceFromZar: 20000,
-        priceFromUsd: 1100,
+        priceFromZar: 14000,
+        priceFromUsd: 780,
         timeline: "2–3 weeks",
         includes: ["Up to 3 branded PDF templates", "Generated from your data or a form", "Email delivery"],
       },
       {
         name: "Signing Workflow",
-        priceFromZar: 55000,
-        priceFromUsd: 3000,
+        priceFromZar: 45000,
+        priceFromUsd: 2500,
         timeline: "5–7 weeks",
         includes: ["Upload, place fields and sign in the browser", "Flattened signed PDFs with a completion certificate", "Dashboard of documents and statuses"],
       },
@@ -338,7 +338,7 @@ export const services: Service[] = [
       {
         project: "DeskSign — PDF e-signature app",
         repoUrl: `${GH}/DeskSign-App`,
-        proofPoint: "Signature, initials, date, text and checkbox fields stored in a resolution-independent model and mapped precisely from screen space to PDF space (unit-tested).",
+        proofPoint: "Signature, initials, date, text and checkbox fields stored in a resolution-independent model and mapped from screen space to PDF space by a pure, unit-tested function.",
         fileRef: "DeskSign-App/src/app/services/pdf-signing.ts",
         image: "/images/work/desksign.webp",
       },
@@ -396,15 +396,15 @@ export const services: Service[] = [
     packages: [
       {
         name: "Concierge",
-        priceFromZar: 28000,
-        priceFromUsd: 1600,
+        priceFromZar: 25000,
+        priceFromUsd: 1400,
         timeline: "3–4 weeks",
         includes: ["Website chat assistant trained on your services", "Lead capture with email verification", "Calendar booking", "Usage and cost safeguards"],
       },
       {
         name: "Workflow Assistant",
-        priceFromZar: 60000,
-        priceFromUsd: 3400,
+        priceFromZar: 55000,
+        priceFromUsd: 3000,
         timeline: "6–8 weeks",
         includes: ["Everything in Concierge", "Quotes, invoices and payments", "Custom integrations with your systems", "Admin view of conversations and leads"],
       },
@@ -453,15 +453,15 @@ export const services: Service[] = [
     packages: [
       {
         name: "Mini-game",
-        priceFromZar: 25000,
-        priceFromUsd: 1400,
+        priceFromZar: 22000,
+        priceFromUsd: 1200,
         timeline: "3–4 weeks",
         includes: ["One polished game loop", "Branded art and sound", "Score sharing", "Desktop and mobile"],
       },
       {
         name: "Campaign Experience",
-        priceFromZar: 60000,
-        priceFromUsd: 3400,
+        priceFromZar: 45000,
+        priceFromUsd: 2500,
         timeline: "6–8 weeks",
         includes: ["Multi-level or multi-mode experience", "Leaderboard and lead capture", "Analytics events", "Launch support"],
       },
@@ -470,7 +470,7 @@ export const services: Service[] = [
       {
         project: "Neon Combat: Hyper Edition",
         repoUrl: `${GH}/Fighting-game`,
-        proofPoint: "Six fighters, a CPU opponent with three difficulty levels that uses the same input path as a human, and all sound generated in code — playable in the browser with no install.",
+        proofPoint: "Six fighters, a CPU opponent with three difficulty levels, combos, supers and all sound generated in code — playable in the browser with no install (keyboard, desktop).",
         fileRef: "Fighting-game/fighting_game.html",
         image: "/images/work/neon-combat.webp",
       },
@@ -495,7 +495,7 @@ export const services: Service[] = [
     evidenceStrength: "strong",
     accent: "accent",
     description: [
-      "I have mentored more than 115 prospective developers through bootcamp final projects and reviewed over 100 more, and later served as a Technical Mentor at WeThinkCode_. Around 80% of the students I mentored passed their bootcamp tests — many of them completely new to programming.",
+      "I mentored more than 115 prospective students through their bootcamp final projects and reviewed over 100 more, then served as a Technical Mentor at WeThinkCode_, running pair-programming sessions and 50+ structured code reviews. Around 80% of the bootcamp students I mentored passed their tests — many of them completely new to programming.",
       "Sessions are hands-on: pair programming on your real code, code reviews with clear explanations, and study plans that build confidence step by step. I work with individuals, bootcamps and teams onboarding junior developers.",
     ],
     idealFor: [
@@ -519,24 +519,24 @@ export const services: Service[] = [
     packages: [
       {
         name: "Mentoring Pack",
-        priceFromZar: 3800,
-        priceFromUsd: 220,
+        priceFromZar: 2800,
+        priceFromUsd: 160,
         timeline: "4 × 1-hour sessions",
         includes: ["Four 1:1 online sessions", "Code review between sessions", "Personal learning plan"],
         purchasable: true,
       },
       {
         name: "Team Workshop",
-        priceFromZar: 9500,
-        priceFromUsd: 550,
+        priceFromZar: 7500,
+        priceFromUsd: 420,
         timeline: "Half day",
         includes: ["Workshop for up to 12 people", "Topic of your choice (Git, testing, clean code, Agile)", "Exercises and follow-up notes"],
         purchasable: true,
       },
       {
         name: "Bootcamp Mentor",
-        priceFromZar: 16000,
-        priceFromUsd: 900,
+        priceFromZar: 12000,
+        priceFromUsd: 670,
         timeline: "Monthly",
         includes: ["Project mentoring for a cohort", "Code reviews and feedback", "Weekly progress reporting"],
       },
@@ -544,14 +544,14 @@ export const services: Service[] = [
     evidence: [
       {
         project: "WeThinkCode_ bootcamps",
-        repoUrl: "https://www.wethinkcode.co.za",
-        proofPoint: "Mentored 115+ prospective students through final projects and reviewed 100+ more; around 80% of mentored students passed their bootcamp tests.",
+        repoUrl: `${GH}/Portfolio`,
+        proofPoint: "Mentored 115+ prospective students through a 16-week bootcamp final project and reviewed 100+ more; around 80% of them passed their tests.",
         fileRef: "Portfolio/index.html",
         image: "/images/about/mentoring-whiteboard.webp",
       },
       {
         project: "Technical Mentor, WeThinkCode_",
-        repoUrl: "https://www.wethinkcode.co.za",
+        repoUrl: `${GH}/Portfolio`,
         proofPoint: "Guided students through pair programming and architectural reviews, and supervised campus roles as the liaison to operations management.",
         fileRef: "Portfolio/index.html",
         image: "/images/about/pair-programming.webp",

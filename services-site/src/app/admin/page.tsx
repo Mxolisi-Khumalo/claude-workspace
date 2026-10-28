@@ -37,10 +37,7 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
   );
 }
 
-export default async function AdminDashboard() {
-  await connection();
-  await requireAdmin("/admin");
-
+async function loadDashboard() {
   const store = getStore();
   const [leads, quotes, invoices, bookings, conversations] = await Promise.all([
     store.listLeads(200),
@@ -49,11 +46,22 @@ export default async function AdminDashboard() {
     store.listBookings(),
     store.listConversations(100),
   ]);
-  leads.sort(newestFirst((l) => l.updatedAt));
-  quotes.sort(newestFirst((q) => q.createdAt));
-  invoices.sort(newestFirst((i) => i.createdAt));
-  bookings.sort(newestFirst((b) => b.start));
-  conversations.sort(newestFirst((c) => c.updatedAt));
+  const now = Date.now();
+  return {
+    storeKind: store.kind,
+    leads: leads.sort(newestFirst((l) => l.updatedAt)),
+    quotes: quotes.sort(newestFirst((q) => q.createdAt)),
+    invoices: invoices.sort(newestFirst((i) => i.createdAt)),
+    bookings: bookings.sort(newestFirst((b) => b.start)),
+    conversations: conversations.sort(newestFirst((c) => c.updatedAt)),
+    upcoming: bookings.filter((b) => b.status !== "cancelled" && new Date(b.start).getTime() > now).length,
+  };
+}
+
+export default async function AdminDashboard() {
+  await connection();
+  await requireAdmin("/admin");
+  const { storeKind, leads, quotes, invoices, bookings, conversations, upcoming } = await loadDashboard();
 
   const leadName = new Map(leads.map((l) => [l.id, l.contact?.name || l.contact?.email || "Anonymous"]));
   const leadLink = (id: string) => (
@@ -66,12 +74,10 @@ export default async function AdminDashboard() {
   const revenue = (["ZAR", "USD"] as Currency[])
     .map((c) => [c, paid.filter((i) => i.currency === c).reduce((sum, i) => sum + i.total, 0)] as const)
     .filter(([, total]) => total > 0);
-  const now = Date.now();
-  const upcoming = bookings.filter((b) => b.status !== "cancelled" && new Date(b.start).getTime() > now).length;
 
   return (
     <>
-      <AdminHeader eyebrow={`Admin · store: ${store.kind}`} title="Dashboard" />
+      <AdminHeader eyebrow={`Admin · store: ${storeKind}`} title="Dashboard" />
       <IntegrationChips />
 
       <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-5">

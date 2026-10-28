@@ -13,7 +13,8 @@ export const signMockWebhook = (rawBody: string, secret = sessionSecret()) => hm
 
 /**
  * Demo payments. Links point at the site's own /demo/checkout page, whose
- * "simulate" buttons post a signed webhook back. Paid state lives in the
+ * "simulate" buttons post a signed webhook back and then return the visitor
+ * to the request's callback URL (same origin only). Paid state lives in the
  * store's webhook-events table, so it survives reloads and is shared by
  * every route.
  */
@@ -27,11 +28,11 @@ export class MockPayments implements PaymentProvider {
 
   async createPaymentLink(req: PaymentLinkRequest): Promise<PaymentLink> {
     if (!(req.amount > 0)) throw new Error("Payment amount must be positive.");
-    return {
-      provider: this.name,
-      url: `${siteUrl()}/demo/checkout/${encodeURIComponent(req.reference)}`,
-      reference: req.reference,
-    };
+    const url = new URL(`${siteUrl()}/demo/checkout/${encodeURIComponent(req.reference)}`);
+    // Like a hosted checkout's callback URL: where the demo checkout sends the visitor afterwards.
+    const callback = URL.canParse(req.callbackUrl) ? new URL(req.callbackUrl) : null;
+    if (callback?.origin === url.origin) url.searchParams.set("return", `${callback.pathname}${callback.search}`);
+    return { provider: this.name, url: url.toString(), reference: req.reference };
   }
 
   async parseWebhook(rawBody: string, headers: Headers): Promise<PaymentWebhookResult> {

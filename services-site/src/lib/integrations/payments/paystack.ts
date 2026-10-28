@@ -63,6 +63,8 @@ export class PaystackPayments implements PaymentProvider {
         metadata: {
           ...req.metadata,
           description: req.description,
+          // Paystack sends visitors who abandon checkout back here too.
+          cancel_action: req.callbackUrl,
           ...(req.name ? { customer_name: req.name } : {}),
           ...(charged ? { quoted_amount: String(req.amount), quoted_currency: req.currency, fx_rate: String(charged.rate) } : {}),
         },

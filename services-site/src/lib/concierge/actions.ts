@@ -4,7 +4,9 @@ import { getService, services } from "@/content";
 import type { ChatCard, ContactDetails, Currency } from "@/lib/chat/types";
 import { createHash, randomInt } from "node:crypto";
 import {
+  amountDue,
   bookingEmailToClient,
+  documentToken,
   documentUrl,
   invoiceEmailToClient,
   ownerNotificationEmail,
@@ -14,8 +16,17 @@ import {
   renderQuotePdf,
   verificationEmail,
 } from "@/lib/documents";
-import { getCalendar, getEmail, getPayments, getStore, isMockEmail } from "@/lib/integrations";
-import type { InvoiceRecord, Lead, PendingAction, QuoteRecord } from "@/lib/integrations/types";
+import {
+  IntegrationConfigError,
+  getCalendar,
+  getEmail,
+  getPaymentProvider,
+  getPayments,
+  getStore,
+  isMockEmail,
+  siteUrl,
+} from "@/lib/integrations";
+import type { InvoiceRecord, Lead, PaymentProvider, PendingAction, QuoteRecord } from "@/lib/integrations/types";
 import { formatMoney, priceQuote, type QuoteInput } from "./pricing";
 
 /**
@@ -45,6 +56,19 @@ export const DEFAULT_TIMEZONE = process.env.OWNER_TIMEZONE ?? "Africa/Johannesbu
 const id = (prefix: string) => `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
 const now = () => new Date().toISOString();
 const year = () => new Date().getFullYear();
+
+/**
+ * Runs `fn` after any in-flight call with the same key (per server process).
+ * Used per session so concurrent requests can't race a read-check-write.
+ */
+const queues = new Map<string, Promise<unknown>>();
+function oneAtATime<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const run = (queues.get(key) ?? Promise.resolve()).then(() => fn());
+  const tail = run.catch(() => undefined);
+  queues.set(key, tail);
+  void tail.then(() => queues.get(key) === tail && queues.delete(key));
+  return run;
+}
 
 async function sendSafely(label: string, fn: () => Promise<unknown>): Promise<string | null> {
   try {
@@ -154,6 +178,11 @@ export async function resendVerification(sessionId: string): Promise<ActionResul
 }
 
 export async function verifyEmail(sessionId: string, code: string): Promise<ActionResult> {
+  // Serialised so parallel guesses can't all read the same attempt count.
+  return oneAtATime(`session:${sessionId}`, () => checkCode(sessionId, code));
+}
+
+async function checkCode(sessionId: string, code: string): Promise<ActionResult> {
   const lead = await ensureLead(sessionId);
   if (!lead.contact) throw new ActionError("Please fill in your contact details first.");
   if (lead.emailVerifiedAt) return { text: "Email already verified.", cards: [] };
@@ -439,16 +468,17 @@ async function createInvoice(
     status: "open",
   };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const payments = getPayments();
+  // Charge what the invoice PDF says is due (VAT included once registered), not the ex-VAT record total.
   const link = await payments.createPaymentLink({
-    amount,
+    amount: amountDue(amount, quote.currency),
     currency: quote.currency,
     email: lead.contact.email,
     name: lead.contact.name,
     reference: number,
     description: `${number} — ${purpose === "deposit" ? "deposit" : "payment"} for quote ${quote.number}`,
-    callbackUrl: `${siteUrl}/pay/complete?ref=${encodeURIComponent(number)}`,
+    // `t` lets the return page offer the invoice PDF without making sequential numbers browsable.
+    callbackUrl: `${siteUrl()}/pay/complete?ref=${encodeURIComponent(number)}&t=${documentToken("invoice", invoice.id)}`,
     metadata: { invoiceId: invoice.id, leadId: lead.id, quoteId: quote.id },
   });
   invoice = await store.saveInvoice({
@@ -470,7 +500,7 @@ async function createInvoice(
   );
   await notifyOwner("Invoice issued", lead, {
     Invoice: invoice.number,
-    Amount: formatMoney(invoice.total, invoice.currency),
+    Amount: formatMoney(amountDue(invoice.total, invoice.currency), invoice.currency),
     Purpose: purpose,
   });
   return invoiceResult(invoice, lead, problem ? `Note: ${problem}.` : "The invoice was also emailed with the PDF attached.");
@@ -478,11 +508,12 @@ async function createInvoice(
 
 function invoiceResult(invoice: InvoiceRecord, lead: Lead, note: string): ActionResult {
   const pdfUrl = documentUrl("invoice", invoice.id);
+  const due = amountDue(invoice.total, invoice.currency);
   const cards: ChatCard[] = [
     {
       kind: "invoice",
       invoiceNumber: invoice.number,
-      amount: invoice.total,
+      amount: due,
       currency: invoice.currency,
       dueDate: invoice.dueDate,
       pdfUrl,
@@ -493,7 +524,7 @@ function invoiceResult(invoice: InvoiceRecord, lead: Lead, note: string): Action
     cards.push({
       kind: "payment",
       url: invoice.payment.url,
-      amount: invoice.total,
+      amount: due,
       currency: invoice.currency as Currency,
       charged: invoice.payment.charged,
       reference: invoice.payment.reference,
@@ -502,7 +533,7 @@ function invoiceResult(invoice: InvoiceRecord, lead: Lead, note: string): Action
     });
   }
   return {
-    text: `Invoice ${invoice.number} for ${formatMoney(invoice.total, invoice.currency)} (${invoice.status}) issued to ${lead.contact?.email}. A secure payment button is showing in the chat. ${note}`,
+    text: `Invoice ${invoice.number} for ${formatMoney(due, invoice.currency)} (${invoice.status}) issued to ${lead.contact?.email}. A secure payment button is showing in the chat. ${note}`,
     cards,
   };
 }
@@ -571,6 +602,7 @@ export async function proposeInvoice(sessionId: string, quoteId: string, purpose
   requireVerified(lead);
   const quote = await ownedQuote(lead, quoteId);
   const amount = purpose === "full" ? quote.total : Math.round((quote.total * quote.depositPercent) / 100);
+  const due = amountDue(amount, quote.currency);
   return propose(
     sessionId,
     "create_invoice",
@@ -579,7 +611,7 @@ export async function proposeInvoice(sessionId: string, quoteId: string, purpose
       title: purpose === "deposit" ? `Pay the ${quote.depositPercent}% deposit` : "Pay in full",
       summary: [
         `Against quote ${quote.number}`,
-        `Amount: ${formatMoney(amount, quote.currency)}`,
+        `Amount: ${formatMoney(due, quote.currency)}${due !== amount ? " incl. VAT" : ""}`,
         "You'll get an invoice by email and a secure payment link",
       ],
       confirmLabel: "Issue invoice",
@@ -587,39 +619,51 @@ export async function proposeInvoice(sessionId: string, quoteId: string, purpose
   );
 }
 
-/** Runs a proposed action after the visitor pressed confirm. Single-use and time-limited. */
+/**
+ * Runs a proposed action after the visitor pressed confirm. Single-use and
+ * time-limited. Actions for one session run one at a time (so two confirmed
+ * invoices can't both pass the "already issued" check), and each action is
+ * claimed atomically in the store, so a double-click or a retry that lands on
+ * another server instance cannot execute it twice.
+ */
 export async function executeAction(sessionId: string, actionId: string): Promise<ActionResult & { summary: string }> {
-  const store = getStore();
-  const action = await store.getPendingAction(actionId);
-  if (!action || action.sessionId !== sessionId) throw new ActionError("That action could not be found.");
-  if (action.status !== "proposed") throw new ActionError("That action was already handled.");
-  if (new Date(action.expiresAt).getTime() < Date.now()) {
-    await store.savePendingAction({ ...action, status: "expired" });
-    throw new ActionError("That confirmation expired. Ask the assistant to set it up again.");
-  }
-  // Claim the action before running it so a double-click cannot execute twice.
-  await store.savePendingAction({ ...action, status: "executed", executedAt: now() });
-  try {
-    const p = action.payload;
-    const result =
-      action.type === "book_call"
-        ? await bookCall(sessionId, p.start, p.timezone, p.notes)
-        : action.type === "email_quote"
-          ? await emailQuote(sessionId, p.quoteId)
-          : await createInvoice(sessionId, p.quoteId, p.purpose === "full" ? "full" : "deposit");
-    await store.savePendingAction({ ...action, status: "executed", executedAt: now(), result: result.text });
-    return { ...result, summary: result.text };
-  } catch (err) {
-    await store.savePendingAction({ ...action, status: "failed", result: String(err) });
-    throw err;
-  }
+  return oneAtATime(`session:${sessionId}`, async () => {
+    const store = getStore();
+    const action = await store.getPendingAction(actionId);
+    if (!action || action.sessionId !== sessionId) throw new ActionError("That action could not be found.");
+    if (action.status !== "proposed") throw new ActionError("That action was already handled.");
+    if (new Date(action.expiresAt).getTime() < Date.now()) {
+      await store.savePendingAction({ ...action, status: "expired" });
+      throw new ActionError("That confirmation expired. Ask the assistant to set it up again.");
+    }
+    if (!(await store.recordWebhookEvent("pending-action", action.id))) {
+      throw new ActionError("That action was already handled.");
+    }
+    await store.savePendingAction({ ...action, status: "executed", executedAt: now() });
+    try {
+      const p = action.payload;
+      const result =
+        action.type === "book_call"
+          ? await bookCall(sessionId, p.start, p.timezone, p.notes)
+          : action.type === "email_quote"
+            ? await emailQuote(sessionId, p.quoteId)
+            : await createInvoice(sessionId, p.quoteId, p.purpose === "full" ? "full" : "deposit");
+      await store.savePendingAction({ ...action, status: "executed", executedAt: now(), result: result.text });
+      return { ...result, summary: result.text };
+    } catch (err) {
+      await store.savePendingAction({ ...action, status: "failed", result: String(err) });
+      throw err;
+    }
+  });
 }
 
 export async function cancelAction(sessionId: string, actionId: string) {
-  const store = getStore();
-  const action = await store.getPendingAction(actionId);
-  if (!action || action.sessionId !== sessionId || action.status !== "proposed") return;
-  await store.savePendingAction({ ...action, status: "cancelled" });
+  await oneAtATime(`session:${sessionId}`, async () => {
+    const store = getStore();
+    const action = await store.getPendingAction(actionId);
+    if (!action || action.sessionId !== sessionId || action.status !== "proposed") return;
+    await store.savePendingAction({ ...action, status: "cancelled" });
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -628,7 +672,9 @@ export async function cancelAction(sessionId: string, actionId: string) {
 
 /**
  * Marks an invoice paid after re-verifying the transaction server-to-server
- * and checking the amount. Idempotent: a paid invoice is returned unchanged.
+ * with the provider that issued it, and checking the amount. Idempotent: a
+ * paid invoice is returned unchanged, and when the webhook and the return
+ * page confirm the same payment at once only one sends the receipt.
  */
 export async function fulfilPayment(reference: string): Promise<InvoiceRecord | null> {
   const store = getStore();
@@ -636,9 +682,18 @@ export async function fulfilPayment(reference: string): Promise<InvoiceRecord | 
   if (!invoice || !invoice.payment) return null;
   if (invoice.status === "paid") return invoice;
 
-  const check = await getPayments().verify(invoice.payment.reference);
+  // Not the active provider: after a switch (or with DEMO_MODE on) the demo
+  // checkout must not be able to settle an invoice issued through Paystack.
+  let provider: PaymentProvider;
+  try {
+    provider = getPaymentProvider(invoice.payment.provider);
+  } catch (err) {
+    if (err instanceof IntegrationConfigError) return invoice;
+    throw err;
+  }
+  const check = await provider.verify(invoice.payment.reference);
   if (!check.paid) return invoice;
-  const expected = invoice.payment.charged ?? { amount: invoice.total, currency: invoice.currency };
+  const expected = invoice.payment.charged ?? { amount: amountDue(invoice.total, invoice.currency), currency: invoice.currency };
   if (check.amount !== undefined && Math.abs(check.amount - expected.amount) > 0.01) {
     console.error(`[payments] amount mismatch for ${reference}: got ${check.amount}, expected ${expected.amount}`);
     return invoice;
@@ -650,23 +705,23 @@ export async function fulfilPayment(reference: string): Promise<InvoiceRecord | 
 
   const paid = await store.saveInvoice({ ...invoice, status: "paid", paidAt: now() });
   const lead = await store.getLead(invoice.leadId);
-  if (lead) {
-    await store.upsertLead({ ...lead, status: "paid", updatedAt: now() });
-    if (lead.contact?.email) {
-      await sendSafely("Receipt email", () =>
-        getEmail().send({
-          to: lead.contact!.email,
-          ...receiptEmailToClient(paid, lead, documentUrl("invoice", paid.id)),
-          replyTo: process.env.OWNER_EMAIL,
-        }),
-      );
-    }
-    await notifyOwner("Payment received", lead, {
-      Invoice: paid.number,
-      Amount: formatMoney(paid.total, paid.currency),
-      Reference: reference,
-    });
+  if (!lead) return paid;
+  await store.upsertLead({ ...lead, status: "paid", updatedAt: now() });
+  if (!(await store.recordWebhookEvent("receipt", paid.id))) return paid;
+  if (lead.contact?.email) {
+    await sendSafely("Receipt email", () =>
+      getEmail().send({
+        to: lead.contact!.email,
+        ...receiptEmailToClient(paid, lead, documentUrl("invoice", paid.id)),
+        replyTo: process.env.OWNER_EMAIL,
+      }),
+    );
   }
+  await notifyOwner("Payment received", lead, {
+    Invoice: paid.number,
+    Amount: formatMoney(amountDue(paid.total, paid.currency), paid.currency),
+    Reference: reference,
+  });
   return paid;
 }
 

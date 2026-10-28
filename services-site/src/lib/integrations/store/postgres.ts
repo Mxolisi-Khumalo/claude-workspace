@@ -12,45 +12,62 @@ import type {
 } from "../types";
 import { DEFAULT_LIST_LIMIT, OUTBOX_CAP, sequenceKey, type AppStore } from "./shared";
 
-type Sql = NeonQueryFunction<false, false>;
 type Row = Record<string, unknown>;
+/** The one driver call the store needs (Neon's `sql.query`); injectable for tests. */
+export type QueryFn = (text: string, params?: unknown[]) => Promise<Row[]>;
 
 /**
  * One table per entity: `id` primary key, a few indexed lookup columns and
  * the full record in `doc jsonb`. Created on first use, so a fresh Neon
- * database needs no migration step.
+ * database needs no migration step. Runs as a single DO block holding a
+ * transaction-scoped advisory lock, so concurrent cold starts serialise
+ * instead of racing on CREATE TABLE.
  */
-const SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS conversations (
-     id text PRIMARY KEY, lead_id text, created_at timestamptz NOT NULL, updated_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS conversations_updated_at_idx ON conversations (updated_at DESC)`,
-  `CREATE TABLE IF NOT EXISTS leads (
-     id text PRIMARY KEY, session_id text NOT NULL, created_at timestamptz NOT NULL, updated_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS leads_session_id_idx ON leads (session_id)`,
-  `CREATE INDEX IF NOT EXISTS leads_created_at_idx ON leads (created_at DESC)`,
-  `CREATE TABLE IF NOT EXISTS quotes (
-     id text PRIMARY KEY, lead_id text NOT NULL, created_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS quotes_lead_id_idx ON quotes (lead_id)`,
-  `CREATE TABLE IF NOT EXISTS invoices (
-     id text PRIMARY KEY, lead_id text NOT NULL, number text NOT NULL, reference text, created_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS invoices_lead_id_idx ON invoices (lead_id)`,
-  `CREATE INDEX IF NOT EXISTS invoices_reference_idx ON invoices (reference)`,
-  `CREATE INDEX IF NOT EXISTS invoices_number_idx ON invoices (number)`,
-  `CREATE TABLE IF NOT EXISTS bookings (
-     id text PRIMARY KEY, lead_id text NOT NULL, start_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS bookings_lead_id_idx ON bookings (lead_id)`,
-  `CREATE TABLE IF NOT EXISTS pending_actions (
-     id text PRIMARY KEY, session_id text NOT NULL, created_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE TABLE IF NOT EXISTS outbox (
-     id text PRIMARY KEY, created_at timestamptz NOT NULL, doc jsonb NOT NULL)`,
-  `CREATE INDEX IF NOT EXISTS outbox_created_at_idx ON outbox (created_at DESC)`,
-  `CREATE TABLE IF NOT EXISTS webhook_events (
-     provider text NOT NULL, event_id text NOT NULL, received_at timestamptz NOT NULL DEFAULT now(),
-     PRIMARY KEY (provider, event_id))`,
-  `CREATE TABLE IF NOT EXISTS counters (name text PRIMARY KEY, value integer NOT NULL)`,
-];
+const SCHEMA_LOCK_KEY = 4_820_117_303;
+const SCHEMA = `DO $$
+BEGIN
+  PERFORM pg_advisory_xact_lock(${SCHEMA_LOCK_KEY});
 
-const json = (v: unknown) => JSON.stringify(v);
+  CREATE TABLE IF NOT EXISTS conversations (
+    id text PRIMARY KEY, lead_id text, created_at timestamptz NOT NULL, updated_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS conversations_updated_at_idx ON conversations (updated_at DESC);
+
+  CREATE TABLE IF NOT EXISTS leads (
+    id text PRIMARY KEY, session_id text NOT NULL, created_at timestamptz NOT NULL, updated_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS leads_session_id_idx ON leads (session_id);
+  CREATE INDEX IF NOT EXISTS leads_created_at_idx ON leads (created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS quotes (
+    id text PRIMARY KEY, lead_id text NOT NULL, created_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS quotes_lead_id_idx ON quotes (lead_id);
+
+  CREATE TABLE IF NOT EXISTS invoices (
+    id text PRIMARY KEY, lead_id text NOT NULL, number text NOT NULL, reference text, created_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS invoices_lead_id_idx ON invoices (lead_id);
+  CREATE INDEX IF NOT EXISTS invoices_reference_idx ON invoices (reference);
+  CREATE INDEX IF NOT EXISTS invoices_number_idx ON invoices (number);
+
+  CREATE TABLE IF NOT EXISTS bookings (
+    id text PRIMARY KEY, lead_id text NOT NULL, start_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS bookings_lead_id_idx ON bookings (lead_id);
+
+  CREATE TABLE IF NOT EXISTS pending_actions (
+    id text PRIMARY KEY, session_id text NOT NULL, created_at timestamptz NOT NULL, doc jsonb NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS outbox (
+    id text PRIMARY KEY, created_at timestamptz NOT NULL, doc jsonb NOT NULL);
+  CREATE INDEX IF NOT EXISTS outbox_created_at_idx ON outbox (created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS webhook_events (
+    provider text NOT NULL, event_id text NOT NULL, received_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (provider, event_id));
+
+  CREATE TABLE IF NOT EXISTS counters (name text PRIMARY KEY, value integer NOT NULL);
+END $$`;
+
+/** jsonb rejects U+0000, so NUL characters are dropped from string values. */
+const json = (v: unknown) =>
+  JSON.stringify(v, (_key, value: unknown) => (typeof value === "string" ? value.replaceAll("\u0000", "") : value));
 const docs = <T>(rows: Row[]) => rows.map((r) => r.doc as T);
 const first = <T>(rows: Row[]) => (rows[0]?.doc as T | undefined) ?? null;
 const limitOf = (n: number | undefined, fallback: number) => Math.max(1, Math.min(Math.floor(n ?? fallback), 1000));
@@ -58,35 +75,33 @@ const limitOf = (n: number | undefined, fallback: number) => Math.max(1, Math.mi
 /** Neon serverless Postgres (HTTP driver). Parameterised queries only. */
 export class PostgresStore implements AppStore {
   readonly kind = "postgres";
-  private readonly sql: Sql;
+  private readonly run: QueryFn;
   private ready: Promise<void> | null = null;
 
-  constructor(connectionString: string) {
-    this.sql = neon(connectionString);
+  constructor(connection: string | QueryFn) {
+    if (typeof connection === "function") {
+      this.run = connection;
+    } else {
+      const sql: NeonQueryFunction<false, false> = neon(connection);
+      this.run = (text, params) => sql.query(text, params) as Promise<Row[]>;
+    }
   }
 
   /** Runs the idempotent schema once per instance; retried on the next call if it fails. */
   private init(): Promise<void> {
-    this.ready ??= (async () => {
-      for (let attempt = 1; ; attempt++) {
-        try {
-          for (const statement of SCHEMA) await this.sql.query(statement);
-          return;
-        } catch (err) {
-          // Concurrent cold starts can race on CREATE TABLE; one retry settles it.
-          if (attempt >= 2) throw err;
-        }
-      }
-    })().catch((err) => {
-      this.ready = null;
-      throw err;
-    });
+    this.ready ??= this.run(SCHEMA).then(
+      () => undefined,
+      (err) => {
+        this.ready = null;
+        throw err;
+      },
+    );
     return this.ready;
   }
 
   private async q(text: string, params: unknown[] = []): Promise<Row[]> {
     await this.init();
-    return (await this.sql.query(text, params)) as Row[];
+    return this.run(text, params);
   }
 
   async getConversation(sessionId: string) {
