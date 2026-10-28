@@ -63,10 +63,14 @@
   --hero-weight: 800;
   --hero-stretch: 112%;
 
-  --eyebrow-transform: none;
+  /* Universe-style lowercase mono labels ("agenda/", "dev.connect()"); data-bearing
+     eyebrows (names, places, codes) opt out with `light:normal-case`. */
+  --eyebrow-transform: lowercase;
   --eyebrow-tracking: 0;
 
   --cursor-ring: rgb(0 0 0 / 0.55);
+  /* Hover fill for solid green buttons (light uses a darker green, not a glow). */
+  --accent-hover: #05661f;
   --bot-shell-from: #ffffff;
   --bot-shell-to: #d2d9d4;
   --watermark: rgb(0 0 0 / 0.05);
@@ -121,6 +125,7 @@
   --eyebrow-tracking: 0.14em;
 
   --cursor-ring: rgb(255 255 255 / 0.45);
+  --accent-hover: #9af0a2;
   --bot-shell-from: #232a36;
   --bot-shell-to: #12161d;
   --watermark: rgb(255 255 255 / 0.035);
@@ -151,6 +156,7 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-bright: var(--accent-bright);
+  --color-accent-hover: var(--accent-hover);
   --color-tint-neon: var(--tint-neon);
   --color-tint-lilac: var(--tint-lilac);
   --color-tint-olive: var(--tint-olive);
@@ -190,10 +196,19 @@ body {
   color: var(--accent-ink);
 }
 
+/* No border-radius here: it used to reshape the focused element itself (pills turned
+   into 4px rectangles in dark, square cells grew rounded corners in light). Outlines
+   follow each element's own radius. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 4px;
+}
+/* Light: the nav is a row of full-height ruled cells, so an outset ring is clipped by
+   the viewport top and hidden under the neighbouring cell. Draw it inside the cell in
+   the cell's ink (black on paper, white on the green CTA). */
+[data-theme="light"] header nav :is(a, button):focus-visible {
+  outline-color: currentColor;
+  outline-offset: -4px;
 }
 
 /* Lenis smooth-scroll recommended styles */
@@ -255,6 +270,11 @@ html.has-custom-cursor * {
     background-clip: text;
     color: transparent;
   }
+  /* Light: solid GitHub green, like the green mark in the UNIVERSE'26 wordmark. */
+  [data-theme="light"] .text-gradient {
+    background: none;
+    color: var(--accent);
+  }
 
   .grid-bg {
     background-image:
@@ -291,11 +311,52 @@ html.has-custom-cursor * {
     radial-gradient(60% 50% at 70% 0%, rgb(163 113 247 / 0.18), transparent 70%),
     radial-gradient(50% 40% at 15% 10%, rgb(126 231 135 / 0.14), transparent 70%), var(--bg);
 }
+/* Light washes are never darker than the paper (see the shader's light branch). */
 [data-theme="light"] .immersive-fallback,
 :root:not([data-theme]) .immersive-fallback {
   background:
-    radial-gradient(55% 45% at 75% 0%, rgb(219 191 253 / 0.35), transparent 70%),
-    radial-gradient(45% 40% at 15% 5%, rgb(140 242 166 / 0.3), transparent 70%), var(--bg);
+    radial-gradient(55% 45% at 75% 0%, rgb(240 235 255 / 0.7), transparent 70%),
+    radial-gradient(45% 40% at 15% 5%, rgb(204 247 214 / 0.6), transparent 70%), var(--bg);
+}
+
+/*
+ * Light theme "blueprint" rails (GitHub Universe's bordered cells): 1px rules
+ * down both edges of the content column — the outer edges of .container-x.
+ * Fixed between the background (-z-10) and the page, so panels, photos and
+ * filled cells cover them. Rendered once by the root layout; absent in dark.
+ */
+.blueprint-rails {
+  display: none;
+}
+[data-theme="light"] .blueprint-rails {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.blueprint-rails::before,
+.blueprint-rails::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+.blueprint-rails::before {
+  left: max(0px, calc((100% - var(--container)) / 2));
+}
+.blueprint-rails::after {
+  right: max(0px, calc((100% - var(--container)) / 2));
+}
+
+/* The open mobile menu covers the page; the floating "Ask Byte" launcher (z-60, above the
+   header) would otherwise sit on top of it and stay in the tab order. The menu has its own
+   "Start a project" button and its own theme switch. */
+html:has(button[aria-controls="mobile-menu"][aria-expanded="true"]) button[aria-controls="concierge-panel"] {
+  visibility: hidden;
+  opacity: 0;
 }
 
 /* Flip every surface at once when the theme changes (see setTheme). */

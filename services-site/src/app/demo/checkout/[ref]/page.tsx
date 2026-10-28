@@ -20,8 +20,10 @@ export const instant = false;
 
 const REF = /^[A-Za-z0-9_-]{1,64}$/;
 
+// Pills in dark; Universe's square primary and 6px secondary buttons in light.
 const button =
-  "w-full rounded-full px-6 py-3 text-sm font-semibold transition-[box-shadow,border-color,color] disabled:opacity-60";
+  "w-full rounded-[var(--radius-button)] px-6 py-3 text-sm font-semibold transition-[box-shadow,border-color,color,background-color] disabled:opacity-60";
+const primaryHover = "hover:shadow-[var(--glow-accent)] light:hover:bg-accent-hover light:hover:shadow-none";
 
 /**
  * Stand-in for a provider's hosted checkout while payments run on the mock
@@ -47,13 +49,13 @@ export default async function DemoCheckoutPage({ params, searchParams }: PagePro
   return (
     <section className="container-x pb-24 pt-32">
       <div className="mx-auto max-w-md">
-        <p className="rounded-full border border-amber/40 bg-amber/10 px-4 py-2 text-center font-mono text-xs text-amber">
+        <p className="rounded-full border border-amber/40 bg-amber/10 px-4 py-2 text-center font-mono text-xs text-amber light:rounded-none light:border-0 light:bg-tint-olive light:text-black">
           Demo checkout — no real money moves
         </p>
 
-        <div className="mt-4 overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface/90 backdrop-blur-md">
-          <div className="border-b border-line bg-[radial-gradient(ellipse_at_top,rgb(126_231_135/0.12),transparent_70%)] p-6 sm:p-8">
-            <p className="eyebrow">Pay {profile.name}</p>
+        <div className="mt-4 overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface/90 backdrop-blur-md light:rounded-none light:bg-surface light:backdrop-blur-none">
+          <div className="border-b border-line bg-[radial-gradient(ellipse_at_top,rgb(126_231_135/0.12),transparent_70%)] p-6 sm:p-8 light:bg-none">
+            <p className="eyebrow light:normal-case">Pay {profile.name}</p>
             <p className="display mt-4 text-5xl">{formatMoney(due.amount, due.currency)}</p>
             <p className="mt-3 font-mono text-sm text-fg-muted">
               {invoice.number} · {purposeLabel(invoice.purpose)}
@@ -83,12 +85,12 @@ export default async function DemoCheckoutPage({ params, searchParams }: PagePro
 
             {paid ? (
               <div className="space-y-3">
-                <p className="rounded-[var(--radius-sm)] border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
+                <p className="rounded-[var(--radius-sm)] border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent light:rounded-none light:border-0 light:border-l-4 light:border-accent light:text-fg">
                   This invoice is already paid.
                 </p>
                 <Link
                   href={returnPath(back, ref)}
-                  className={`${button} block bg-accent text-center text-accent-ink hover:shadow-[var(--glow-accent)]`}
+                  className={`${button} ${primaryHover} block bg-accent text-center text-accent-ink`}
                 >
                   View payment status
                 </Link>
@@ -96,12 +98,15 @@ export default async function DemoCheckoutPage({ params, searchParams }: PagePro
             ) : (
               <div className="space-y-3 pt-2">
                 <form action={simulatePayment.bind(null, ref, "success", back)}>
-                  <SubmitButton pendingLabel="Processing…" className={`${button} bg-accent text-accent-ink hover:shadow-[var(--glow-accent)]`}>
+                  <SubmitButton pendingLabel="Processing…" className={`${button} ${primaryHover} bg-accent text-accent-ink`}>
                     Simulate successful payment
                   </SubmitButton>
                 </form>
                 <form action={simulatePayment.bind(null, ref, "failed", back)}>
-                  <SubmitButton pendingLabel="Processing…" className={`${button} border border-line-strong text-fg hover:border-pink hover:text-pink`}>
+                  <SubmitButton
+                    pendingLabel="Processing…"
+                    className={`${button} border border-line-strong text-fg hover:border-pink hover:text-pink light:rounded-[6px] light:bg-fg/5`}
+                  >
                     Simulate failed payment
                   </SubmitButton>
                 </form>

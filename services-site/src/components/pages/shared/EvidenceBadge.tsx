@@ -24,7 +24,7 @@ export function StrengthMeter({ strength }: { strength: EvidenceStrength }) {
       {[1, 2, 3].map((n) => (
         <span
           key={n}
-          className={clsx("w-[3px] rounded-full", n <= bars[strength] ? barOn[strength] : "bg-white/15")}
+          className={clsx("w-[3px] rounded-full light:rounded-none", n <= bars[strength] ? barOn[strength] : "bg-fg/15")}
           style={{ height: 4 + n * 3 }}
         />
       ))}
@@ -54,7 +54,7 @@ export function EvidenceBadge({
   const pill = (
     <span
       className={clsx(
-        "inline-flex items-center gap-2 rounded-full border bg-bg/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] backdrop-blur",
+        "inline-flex items-center gap-2 rounded-full border bg-bg/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] backdrop-blur light:rounded-[4px] light:bg-surface light:text-xs light:normal-case light:tracking-normal light:backdrop-blur-none",
         tone[strength],
         className,
       )}
@@ -62,7 +62,7 @@ export function EvidenceBadge({
       <StrengthMeter strength={strength} />
       {copy.label}
       {explain && (
-        <span aria-hidden className="grid h-4 w-4 place-items-center rounded-full border border-current text-[9px] leading-none">
+        <span aria-hidden className="grid h-4 w-4 place-items-center rounded-full border border-current text-[9px] leading-none light:rounded-[3px]">
           ?
         </span>
       )}
@@ -74,16 +74,16 @@ export function EvidenceBadge({
   const tipId = id ?? `strength-${strength}`;
   return (
     <DismissibleTip>
-      <button type="button" aria-describedby={tipId} className="rounded-full">
+      <button type="button" aria-describedby={tipId} className="rounded-full light:rounded-[4px]">
         {pill}
         <span className="sr-only">: what does this mean?</span>
       </button>
       <span
         id={tipId}
         role="tooltip"
-        className="mkp-tip-panel rounded-[var(--radius)] border border-line-strong bg-bg-elevated/95 p-4 text-left text-sm leading-relaxed text-fg-muted shadow-[0_24px_60px_-24px_rgb(0_0_0/0.9)] backdrop-blur-xl"
+        className="mkp-tip-panel rounded-[var(--radius)] border border-line-strong bg-bg-elevated/95 p-4 text-left text-sm leading-relaxed text-fg-muted shadow-[0_24px_60px_-24px_rgb(0_0_0/0.9)] backdrop-blur-xl light:rounded-none light:bg-surface light:shadow-[var(--shadow-panel)] light:backdrop-blur-none"
       >
-        <span className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.12em] text-fg">{copy.label}</span>
+        <span className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.12em] text-fg light:text-xs light:normal-case light:tracking-normal">{copy.label}</span>
         {copy.explain}
       </span>
     </DismissibleTip>

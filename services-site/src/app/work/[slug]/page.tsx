@@ -67,8 +67,9 @@ export default async function CaseStudyPage({ params }: Props) {
   ];
 
   return (
+    // Light: the page is ruled into cells (mkp-* hooks in pages.css).
     <article style={glowStyle(related[0]?.accent ?? "accent")}>
-      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)]">
+      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)] light:pb-16 md:light:pb-20">
         <div aria-hidden className="grid-bg pointer-events-none absolute inset-x-0 top-0 h-full opacity-60" />
         <div className="container-x relative">
           <Breadcrumbs items={[{ href: "/", label: "Home" }, { href: "/work", label: "Work" }, { label: study.title }]} />
@@ -95,7 +96,7 @@ export default async function CaseStudyPage({ params }: Props) {
                   <dd>
                     <ul className="flex flex-wrap gap-2" aria-label="Technologies">
                       {study.stack.map((t) => (
-                        <li key={t} className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fg-muted">
+                        <li key={t} className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fg-muted light:rounded-[4px] light:border-line-strong light:bg-surface light:text-xs">
                           {t}
                         </li>
                       ))}
@@ -133,15 +134,18 @@ export default async function CaseStudyPage({ params }: Props) {
         </div>
       </header>
 
-      <section aria-label="Screenshots" className="container-x pt-16 md:pt-24">
+      <section aria-label="Screenshots" className="mkp-sec mkp-pad container-x pt-16 md:pt-24">
         <Reveal y={48}>
           <Gallery images={study.images} title={study.title} mark={n} />
         </Reveal>
       </section>
 
-      <div className="container-x py-16 md:py-24">
+      <div className="container-x py-16 md:py-24 light:py-0">
         {chapters.map((c, i) => (
-          <section key={c.label} className="grid gap-6 border-t border-line py-14 md:py-20 lg:grid-cols-12 lg:gap-8">
+          <section
+            key={c.label}
+            className="mkp-split grid gap-6 border-t border-line py-14 md:py-20 lg:grid-cols-12 lg:gap-8 light:-mx-[var(--gutter)] light:px-[var(--gutter)] light:py-0"
+          >
             <div className="lg:col-span-4">
               <span aria-hidden className="display mkp-ghost mkp-figures block text-[clamp(5rem,13vw,11rem)] leading-[0.8]">
                 {String(i + 1).padStart(2, "0")}
@@ -163,19 +167,25 @@ export default async function CaseStudyPage({ params }: Props) {
       </div>
 
       {related.length > 0 && (
-        <section className="container-x pb-20 md:pb-28" aria-labelledby="related-heading">
-          <p className="eyebrow mb-5">
-            <span className="text-[var(--glow)]">{"//"}</span> Related services
-          </p>
-          <h2 id="related-heading" className="display max-w-3xl text-[clamp(2rem,4.4vw,3.75rem)]">
-            Want something like this?
-          </h2>
-          <GlowGroup as="ul" className="mt-12 grid gap-5 md:grid-cols-2">
+        <section className="mkp-sec container-x pb-20 md:pb-28" aria-labelledby="related-heading">
+          <div className="mkp-head">
+            <p className="eyebrow mb-5">
+              <span className="text-[var(--glow)] light:hidden">{"//"}</span> <span className="mkp-slug">Related services</span>
+            </p>
+            <h2 id="related-heading" className="display max-w-3xl text-[clamp(2rem,4.4vw,3.75rem)]">
+              Want something like this?
+            </h2>
+          </div>
+          <GlowGroup as="ul" className="mkp-cells mt-12 grid gap-5 md:grid-cols-2">
             {related.map((s) => (
-              <li key={s.slug} className="mkp-card group relative flex flex-col gap-6 p-6 md:p-8" style={glowStyle(s.accent)}>
+              <li
+                key={s.slug}
+                className="mkp-card group relative flex flex-col gap-6 p-6 md:p-8 light:py-10"
+                style={glowStyle(s.accent)}
+              >
                 <span className="mkp-card-edge" />
                 <EvidenceBadge strength={s.evidenceStrength} className="self-start" />
-                <h3 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                <h3 className="text-2xl font-semibold tracking-tight md:text-3xl light:font-normal">
                   <Link
                     href={`/services/${s.slug}`}
                     data-cursor="view"
@@ -196,15 +206,16 @@ export default async function CaseStudyPage({ params }: Props) {
         </section>
       )}
 
-      <section className="container-x pb-20 md:pb-28">
-        <div className="mkp-card relative overflow-hidden px-6 py-10 md:px-12 md:py-14">
+      {/* Light: a black utility strip (mkp-strip re-points the tokens: white type, neon highlights). */}
+      <section className="mkp-sec container-x pb-20 md:pb-28">
+        <div className="mkp-card mkp-strip mkp-bleed relative overflow-hidden px-6 py-10 md:px-12 md:py-14 md:light:py-16">
           <span className="mkp-card-edge" />
           <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
           <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="eyebrow mb-3">{"// Don't take my word for it"}</p>
               <h2 className="display text-[clamp(1.75rem,3.4vw,2.75rem)]">The code is public. Read it.</h2>
-              <p className="mt-3 font-mono text-sm text-fg-muted">{repoLabel(study.repoUrl)}</p>
+              <p className="mt-3 font-mono text-sm text-fg-muted light:text-accent">{repoLabel(study.repoUrl)}</p>
             </div>
             <ExternalButton href={study.repoUrl} cursorLabel="Code" className="self-start md:self-auto">
               View the code

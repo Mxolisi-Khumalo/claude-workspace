@@ -29,7 +29,7 @@ export function LegalPage({
 }) {
   return (
     <>
-      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)]">
+      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)] light:pb-16 md:light:pb-20">
         <div aria-hidden className="grid-bg pointer-events-none absolute inset-x-0 top-0 h-full opacity-50" />
         <div className="container-x relative">
           <Breadcrumbs items={[{ href: "/", label: "Home" }, { label }]} />
@@ -47,7 +47,8 @@ export function LegalPage({
               </p>
               <div
                 role="note"
-                className="rounded-[var(--radius)] border border-amber/40 bg-amber/10 p-4 text-sm leading-relaxed text-fg"
+                // Light: a white panel with Universe's thick olive bar (as on its testimonials).
+                className="rounded-[var(--radius)] border border-amber/40 bg-amber/10 p-4 text-sm leading-relaxed text-fg light:rounded-none light:border-0 light:border-l-[6px] light:border-tint-olive light:bg-surface light:py-5 light:pl-5"
               >
                 {notice}
               </div>
@@ -56,10 +57,12 @@ export function LegalPage({
         </div>
       </header>
 
-      <div className="container-x grid gap-12 py-16 md:py-24 lg:grid-cols-12 lg:gap-8">
+      <div className="mkp-sec mkp-split container-x grid gap-12 py-16 md:py-24 lg:grid-cols-12 lg:gap-8">
         <nav aria-label="On this page" className="lg:col-span-3">
           <div className="lg:sticky lg:top-[calc(var(--nav-h)+1.5rem)]">
-            <p className="eyebrow mb-4">On this page</p>
+            <p className="eyebrow mb-4">
+              <span className="mkp-slug">On this page</span>
+            </p>
             <ol className="grid gap-1 border-l border-line">
               {sections.map((s, i) => (
                 <li key={s.id}>
@@ -79,7 +82,7 @@ export function LegalPage({
         <div className="lg:col-span-8 lg:col-start-5">
           {sections.map((s, i) => (
             <section key={s.id} id={s.id} className="scroll-mt-28 border-t border-line py-10 first:border-t-0 first:pt-0 md:py-12">
-              <h2 className="flex items-baseline gap-4 text-2xl font-semibold tracking-tight md:text-3xl">
+              <h2 className="flex items-baseline gap-4 text-2xl font-semibold tracking-tight md:text-3xl light:font-normal">
                 <span className="font-mono text-sm font-normal text-accent">{pad(i + 1)}</span>
                 {s.title}
               </h2>

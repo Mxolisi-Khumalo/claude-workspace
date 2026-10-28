@@ -51,6 +51,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Light theme ticker: GitHub Universe's saturated band segments (black text on each). */
+const TINTS = ["light:bg-tint-neon", "light:bg-tint-olive", "light:bg-tint-lilac"];
+
+/** Tint for ticker word i of n, never repeating a colour across the loop's seam. */
+function tickerTint(i: number, n: number) {
+  return TINTS[n % 3 === 1 && i === n - 1 ? 1 : i % 3];
+}
+
 /** Grid spans so deliverable cards always fill complete rows. */
 function deliverableSpan(i: number, n: number) {
   const emptyLg = (3 - (n % 3)) % 3;
@@ -77,9 +85,9 @@ export default async function ServicePage({ params }: Props) {
     <article style={glowStyle(service.accent)}>
       <ServiceHero service={service} index={index} />
 
-      {/* Overview */}
-      <section className="container-x py-20 md:py-28">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      {/* Overview. Light: every section below is a row of ruled cells (mkp-* hooks in pages.css). */}
+      <section className="mkp-sec container-x py-20 md:py-28">
+        <div className="mkp-split grid gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <SectionHeading index={num()} label="Overview" title="How I approach it" size="sm" />
           </div>
@@ -113,27 +121,28 @@ export default async function ServicePage({ params }: Props) {
       </section>
 
       {/* Deliverables */}
-      <section className="container-x py-20 md:py-28">
+      <section className="mkp-sec container-x py-20 md:py-28">
         <SectionHeading
+          className="mkp-head"
           index={num()}
           label="Deliverables"
           title="What's included"
           align="split"
           intro="What a typical engagement delivers. The package you choose sets the scope; your written quote lists exactly what's in it."
         />
-        <GlowGroup as="ol" className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <GlowGroup as="ol" className="mkp-cells mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {service.deliverables.map((d, i, all) => (
             <li
               key={d}
               className={clsx(
-                "mkp-card flex flex-col justify-between gap-6 p-6 sm:min-h-[180px] sm:gap-10 md:min-h-[210px] md:p-7",
+                "mkp-card flex flex-col justify-between gap-6 p-6 sm:min-h-[180px] sm:gap-10 md:min-h-[210px] md:p-7 light:py-8 md:light:min-h-[240px] md:light:py-9",
                 deliverableSpan(i, all.length),
               )}
             >
               <span className="mkp-card-edge" />
               <span className="flex items-center justify-between font-mono text-xs">
                 <span className="text-[var(--glow)]">{pad(i + 1)}</span>
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--glow)] shadow-[0_0_12px_var(--glow)]" />
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--glow)] shadow-[0_0_12px_var(--glow)] light:rounded-none light:shadow-none" />
               </span>
               <p className="max-w-[34ch] text-lg leading-snug text-fg md:text-xl">{d}</p>
             </li>
@@ -142,36 +151,39 @@ export default async function ServicePage({ params }: Props) {
       </section>
 
       {/* Process */}
-      <section className="container-x py-20 md:py-28">
+      <section className="mkp-sec container-x py-20 md:py-28">
         <SectionHeading
+          className="mkp-head"
           index={num()}
           label="Process"
           title="How we'll work"
           align="split"
           intro="Clear stages with agreed outcomes, so you always know where things stand and can steer early rather than discover surprises at the end."
         />
-        <div className="mt-16 md:mt-20">
+        <div className="mkp-pad mt-16 md:mt-20">
           <ProcessTimeline steps={service.process} />
         </div>
       </section>
 
       {/* Packages */}
-      <section id="packages" className="container-x scroll-mt-24 py-20 md:py-28">
+      <section id="packages" className="mkp-sec container-x scroll-mt-24 py-20 md:py-28">
         <SectionHeading
+          className="mkp-head"
           index={num()}
           label="Packages"
           title="Packages & pricing"
           align="split"
           intro="Published starting prices in rand and US dollars. Pick a package, or ask Byte to size a custom scope."
         />
-        <div className="mt-12">
+        <div className="mt-12 light:mt-0">
           <Packages packages={service.packages} serviceTitle={service.title} serviceSlug={service.slug} />
         </div>
       </section>
 
       {/* Evidence */}
-      <section id="evidence" className="container-x scroll-mt-24 py-20 md:py-28">
+      <section id="evidence" className="mkp-sec container-x scroll-mt-24 py-20 md:py-28">
         <SectionHeading
+          className="mkp-head"
           index={num()}
           label="Evidence"
           title="Proof, not promises"
@@ -185,22 +197,23 @@ export default async function ServicePage({ params }: Props) {
             </>
           }
         />
-        <div className="mt-14">
+        <div className="mt-14 light:mt-0">
           <EvidenceGrid items={service.evidence} />
         </div>
       </section>
 
       {/* Related case studies */}
       {studies.length > 0 && (
-        <section className="container-x py-20 md:py-28">
+        <section className="mkp-sec container-x py-20 md:py-28">
           <SectionHeading
+            className="mkp-head"
             index={num()}
             label="Case studies"
             title="Go deeper"
             align="split"
             intro="Full write-ups of the projects behind this evidence: the problem, the approach and what the code does."
           />
-          <GlowGroup className={clsx("mt-14 grid gap-5", studies.length > 1 && "md:grid-cols-2")}>
+          <GlowGroup className={clsx("mkp-cells mt-14 grid gap-5", studies.length > 1 && "md:grid-cols-2")}>
             {studies.map((c) => (
               <CaseStudyCard key={c.slug} study={c} className={studies.length === 1 ? "md:max-w-3xl" : undefined} />
             ))}
@@ -209,21 +222,32 @@ export default async function ServicePage({ params }: Props) {
       )}
 
       {/* Stack */}
-      <section className="py-20 md:py-28">
-        <div className="container-x">
+      {/* Light: the heading gets its own ruled cell and the marquee becomes a band of tinted ticker segments. */}
+      <section className="py-20 md:py-28 light:py-0">
+        <div className="mkp-sec mkp-pad container-x">
           <SectionHeading index={num()} label="Stack" title="Tools of the trade" />
         </div>
-        <div aria-hidden className="mt-14 border-y border-line bg-bg/40 py-6 md:py-8">
+        <div aria-hidden className="mt-14 border-y border-line bg-bg/40 py-6 md:py-8 light:mt-0 light:bg-transparent light:py-0">
           <Marquee speed={36}>
-            {service.tech.map((t) => (
-              <span key={t} className="display mkp-ghost-muted flex items-center whitespace-nowrap px-6 text-[clamp(2.5rem,6vw,5.5rem)]">
+            {service.tech.map((t, i, all) => (
+              <span
+                key={t}
+                className={clsx(
+                  "display mkp-ghost-muted flex items-center whitespace-nowrap px-6 text-[clamp(2.5rem,6vw,5.5rem)]",
+                  "light:py-3.5 light:pl-6 light:pr-5 light:font-mono light:text-[clamp(1rem,1.5vw,1.3rem)] light:leading-none light:tracking-normal md:light:py-4",
+                  tickerTint(i, all.length),
+                )}
+              >
                 {t}
-                <span className="ml-12 text-[0.4em] text-[var(--glow)] [-webkit-text-stroke:0]">✦</span>
+                <span className="ml-12 text-[0.4em] text-[var(--glow)] [-webkit-text-stroke:0] light:ml-6 light:text-[0.8rem] light:text-black">✦</span>
               </span>
             ))}
           </Marquee>
         </div>
-        <ul className="container-x mt-10 flex flex-wrap gap-2.5" aria-label={`Technologies used for ${service.title}`}>
+        <ul
+          className="container-x mt-10 flex flex-wrap gap-2.5 light:mt-0 light:py-10 md:light:py-12"
+          aria-label={`Technologies used for ${service.title}`}
+        >
           {service.tech.map((t) => (
             <li key={t} className="mkp-chip">
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--glow)]" />
@@ -234,8 +258,8 @@ export default async function ServicePage({ params }: Props) {
       </section>
 
       {/* FAQ */}
-      <section className="container-x py-20 md:py-28">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <section className="mkp-sec container-x py-20 md:py-28">
+        <div className="mkp-split grid gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <SectionHeading index={num()} label="FAQ" title="Questions, answered" size="sm" />
           </div>
@@ -245,7 +269,7 @@ export default async function ServicePage({ params }: Props) {
         </div>
       </section>
 
-      <div className="container-x pb-20 md:pb-28">
+      <div className="mkp-sec container-x pb-20 md:pb-28">
         <CtaBand
           title="Tell me what you're building."
           body="Byte, my AI project concierge, can scope this with you, give you a ballpark quote from these packages and book a free 30-minute discovery call."

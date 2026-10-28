@@ -125,7 +125,7 @@
  */
 .hm-figures {
   font-family: var(--font-sans);
-  font-stretch: 125%;
+  font-stretch: var(--display-stretch);
   font-feature-settings: normal;
 }
 
@@ -368,7 +368,9 @@
 .hm-faq summary::-webkit-details-marker {
   display: none;
 }
+/* The glyph turns (+ to ×), not its key, so square keys in light stay square. */
 .hm-faq-icon {
+  display: block;
   transition: transform 0.5s var(--ease-out);
 }
 .hm-faq details[open] .hm-faq-icon {
@@ -404,4 +406,140 @@
   .hm-portrait:hover .hm-portrait-scan {
     opacity: 0;
   }
+}
+
+/* ---------- Generated case-study cover (Proof) ----------------------------
+ * Dark: neon blooms on near-black, like a screenshot of the dark site.
+ * Light: the same blooms in Universe tints on a green-grey sheet.
+ */
+.hm-art {
+  background:
+    radial-gradient(60% 80% at 20% 0%, color-mix(in srgb, var(--art) 55%, transparent), transparent 70%),
+    radial-gradient(50% 70% at 85% 10%, rgb(163 113 247 / 0.55), transparent 70%),
+    radial-gradient(70% 60% at 50% 120%, rgb(255 166 87 / 0.35), transparent 70%), #0b0d12;
+}
+[data-theme="light"] .hm-art {
+  background:
+    radial-gradient(60% 80% at 20% 0%, color-mix(in srgb, var(--art) 30%, transparent), transparent 70%),
+    radial-gradient(50% 70% at 85% 10%, color-mix(in srgb, var(--tint-lilac) 45%, transparent), transparent 70%),
+    radial-gradient(70% 60% at 50% 120%, color-mix(in srgb, var(--tint-olive) 35%, transparent), transparent 70%),
+    var(--surface-2);
+}
+
+/* ==========================================================================
+ * Light theme — GitHub Universe "blueprint" layout for the home sections.
+ * The page rails come from .blueprint-rails (root layout) at the outer edges
+ * of .container-x; rows here bleed out to them (-gutter) and rule off cells
+ * with 1px lines. Nothing below applies in dark.
+ * ========================================================================== */
+
+/* Hero: graph paper instead of a dot grid; the spotlight inks it green. */
+[data-theme="light"] .hm-dots {
+  background-image:
+    linear-gradient(rgb(0 0 0 / 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 0 0 / 0.055) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse 75% 70% at 25% 100%, black 15%, transparent 72%);
+}
+[data-theme="light"] .hm-dots-lit {
+  background-image:
+    linear-gradient(var(--accent) 1px, transparent 1px),
+    linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(180px circle at var(--hx, -999px) var(--hy, -999px), black 0%, transparent 100%);
+  opacity: 0.3;
+}
+
+/* "I build ___" becomes a terminal line ending in a solid block caret. */
+[data-theme="light"] .hm-caret {
+  width: 0.55em;
+  height: 0.95em;
+  margin-left: 0.08em;
+  vertical-align: -0.14em;
+}
+
+/* Proof cells sit in a ruled row: no idle bobbing. */
+[data-theme="light"] .hm-chip .hm-float {
+  animation: none;
+}
+
+/* Tech ticker band: black words on saturated tints, never outlined. */
+[data-theme="light"] .hm-ticker .hm-outline {
+  color: #000;
+  -webkit-text-stroke: 0;
+}
+/* Big-type row: a crisp ink outline on paper. */
+[data-theme="light"] .hm-outline {
+  -webkit-text-stroke: 2px rgb(0 0 0 / 0.62);
+}
+
+/* Glow border: a tighter ring and a fainter wash on white panels. */
+[data-theme="light"] .hm-glow::before {
+  background: radial-gradient(320px circle at var(--mx) var(--my), var(--glow), transparent 65%);
+}
+[data-theme="light"] .hm-glow::after {
+  background: radial-gradient(420px circle at var(--mx) var(--my), color-mix(in srgb, var(--glow) 7%, transparent), transparent 60%);
+}
+
+/* Services index: a ruled table — every column is a cell with a 1px rule. */
+@media (min-width: 768px) {
+  [data-theme="light"] .hm-row-col {
+    padding: 2.25rem 1.5rem 2.5rem;
+  }
+  [data-theme="light"] .hm-row-col + .hm-row-col {
+    border-left: 1px solid var(--line);
+  }
+  [data-theme="light"] .hm-row-num {
+    padding-left: var(--gutter);
+  }
+  [data-theme="light"] .hm-row-col:last-child {
+    padding-right: var(--gutter);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  /* A square key doesn't spin into a diamond: it fills and nudges right. */
+  [data-theme="light"] .hm-row a:hover .hm-row-arrow {
+    color: #fff;
+    transform: translateX(0.25rem);
+  }
+}
+
+/* Process and FAQ: an agenda-style column — ruled off from the heading on
+   large screens and bled out to the right rail, one ruled row per item. The
+   section's grid draws the outer top and bottom rules. */
+[data-theme="light"] .hm-steps,
+[data-theme="light"] .hm-faq {
+  margin-inline: calc(var(--gutter) * -1);
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}
+[data-theme="light"] .hm-step {
+  padding: 2.5rem var(--gutter);
+}
+[data-theme="light"] .hm-step + .hm-step {
+  border-top: 1px solid var(--line);
+}
+[data-theme="light"] .hm-steps-line {
+  left: calc(var(--gutter) + 1.4rem);
+  top: 3.5rem;
+  bottom: 3.5rem;
+}
+[data-theme="light"] .hm-faq details {
+  padding-inline: var(--gutter);
+}
+[data-theme="light"] .hm-faq details:last-child {
+  border-bottom: 0;
+}
+@media (min-width: 1024px) {
+  [data-theme="light"] .hm-steps,
+  [data-theme="light"] .hm-faq {
+    margin-left: 0;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+
+/* Impact: stats as ruled cells from rail to rail. */
+[data-theme="light"] .hm-stat {
+  padding-inline: var(--gutter);
 }

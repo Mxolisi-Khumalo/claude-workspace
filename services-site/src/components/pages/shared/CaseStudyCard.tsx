@@ -25,7 +25,7 @@ export function CaseStudyCard({
   const cover = study.images[0];
   const n = caseStudyNumber(study.slug);
   return (
-    <article className={clsx("mkp-card group flex flex-col overflow-hidden", className)}>
+    <article className={clsx("mkp-card mkp-cell-flush group flex flex-col overflow-hidden", className)}>
       <span className="mkp-card-edge" />
       <div className="relative aspect-[16/10] overflow-hidden border-b border-line">
         {cover ? (
@@ -39,12 +39,12 @@ export function CaseStudyCard({
         ) : (
           <GradientArt className="absolute inset-0" mark={n} seed={Number(n)} />
         )}
-        <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/50 px-2.5 py-1 font-mono text-[11px] text-white/80 backdrop-blur">
+        <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/50 px-2.5 py-1 font-mono text-[11px] text-white/80 backdrop-blur light:left-0 light:top-0 light:rounded-none light:border-0 light:border-b light:border-r light:border-line-strong light:bg-surface light:px-3 light:py-1.5 light:text-xs light:text-fg light:backdrop-blur-none">
           Case {n}
         </span>
       </div>
-      <div className="flex flex-1 flex-col p-6 md:p-7">
-        <H className="text-xl font-semibold leading-snug tracking-tight md:text-2xl">
+      <div className="mkp-cell-body flex flex-1 flex-col p-6 md:p-7 light:pb-9 light:pt-8">
+        <H className="text-xl font-semibold leading-snug tracking-tight md:text-2xl light:font-medium">
           <Link
             href={`/work/${study.slug}`}
             data-cursor="view"
@@ -57,7 +57,7 @@ export function CaseStudyCard({
         <p className="mt-3 leading-relaxed text-fg-muted">{study.summary}</p>
         <ul className="mt-5 flex flex-wrap gap-2" aria-label="Stack">
           {study.stack.slice(0, 4).map((t) => (
-            <li key={t} className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fg-subtle">
+            <li key={t} className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fg-subtle light:rounded-[4px] light:border-line-strong light:text-xs light:text-fg-muted">
               {t}
             </li>
           ))}

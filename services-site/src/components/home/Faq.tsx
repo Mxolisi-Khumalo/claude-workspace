@@ -28,12 +28,19 @@ const FAQS = [
   },
 ];
 
-/** Accessible accordion on native <details>; height animates where supported. */
+/**
+ * Accessible accordion on native <details>; height animates where supported.
+ * Light: ruled rows in a column beside the sticky heading (see .hm-faq).
+ */
 export function Faq() {
   return (
-    <section id="faq" aria-label="Frequently asked questions" className="relative scroll-mt-24 py-20 md:py-32">
-      <div className="container-x grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
-        <div className="lg:sticky lg:top-28 lg:self-start">
+    <section
+      id="faq"
+      aria-label="Frequently asked questions"
+      className="relative scroll-mt-24 py-20 md:py-32 light:py-16 md:light:py-24"
+    >
+      <div className="container-x grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20 light:gap-0 light:border-y light:border-line">
+        <div className="lg:sticky lg:top-28 lg:self-start light:py-12 lg:light:py-10 lg:light:pr-12">
           <p className="eyebrow mb-5">{"// FAQ"}</p>
           <RevealText as="h2" className="display text-[clamp(2.5rem,4.4vw,4.25rem)]">
             Questions, answered.
@@ -58,9 +65,9 @@ export function Faq() {
                 </span>
                 <span
                   aria-hidden
-                  className="hm-faq-icon grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line-strong text-lg leading-none text-fg-muted group-open:border-accent group-open:text-accent"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line-strong text-lg leading-none text-fg-muted group-open:border-accent group-open:text-accent light:rounded-[6px] light:bg-black/5"
                 >
-                  +
+                  <span className="hm-faq-icon">+</span>
                 </span>
               </summary>
               <p className="max-w-[62ch] pb-7 pl-9 text-base leading-relaxed text-fg-muted">{f.a}</p>

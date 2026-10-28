@@ -22,7 +22,9 @@ export function ThemeToggle({ className, showLabel = false }: { className?: stri
         className,
       )}
     >
-      <span aria-hidden className="relative block h-4 w-4">
+      {/* In light the moon's "bite" (painted in --bg) is parked outside the icon; clip it so it
+          never shows as a pale disc on a tinted button. */}
+      <span aria-hidden className="relative block h-4 w-4 light:overflow-hidden">
         {/* Sun: a disc with rays; moon: the same disc with a bite taken out. */}
         <span
           className={clsx(

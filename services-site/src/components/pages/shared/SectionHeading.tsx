@@ -3,6 +3,8 @@ import { RevealText } from "@/components/ui/RevealText";
 
 /**
  * Numbered section heading: "// 03 — Process" eyebrow + kinetic display h2.
+ * Pass `className="mkp-head"` for a full-width heading that sits in its own
+ * ruled cell in the light theme.
  */
 export function SectionHeading({
   index,
@@ -30,11 +32,12 @@ export function SectionHeading({
       )}
     >
       <div>
+        {/* Light reads like a Universe slug ("01 — overview/"): no "//", lowercase label. */}
         <p className="eyebrow mb-5 flex items-center gap-3">
-          <span className="text-[var(--glow,var(--accent))]">{"//"}</span>
+          <span className="text-[var(--glow,var(--accent))] light:hidden">{"//"}</span>
           {index && <span className="text-fg">{index}</span>}
           {index && <span aria-hidden className="h-px w-8 bg-line-strong" />}
-          <span>{label}</span>
+          <span className="mkp-slug">{label}</span>
         </p>
         <RevealText
           as="h2"

@@ -70,7 +70,7 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
 
   return (
     <div ref={list} className="relative">
-      <ol className="border-t border-line">
+      <ol className="mkp-rows border-t border-line">
         {rows.map((row, i) => (
           <li key={row.slug} className="border-b border-line" style={glowStyle(row.accent)}>
             <Link
@@ -84,7 +84,15 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
                 aria-hidden
                 className="absolute inset-0 -z-10 origin-bottom scale-y-0 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--glow)_10%,transparent),transparent_70%)] transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-y-100"
               />
-              <span className={clsx("pt-2 font-mono text-sm md:pt-[1.6vw] xl:pt-6", accentText[row.accent])}>{row.n}</span>
+              {/* Light (md+): number | title | meta as ruled cells, each spanning the row's height. */}
+              <span
+                className={clsx(
+                  "pt-2 font-mono text-sm md:pt-[1.6vw] xl:pt-6 md:light:-my-10 md:light:self-stretch md:light:border-r md:light:border-line md:light:pb-10 md:light:pt-[calc(2.5rem+1.6vw)] xl:light:pt-[calc(2.5rem+1.5rem)]",
+                  accentText[row.accent],
+                )}
+              >
+                {row.n}
+              </span>
               <span className="min-w-0">
                 <span
                   className={clsx(
@@ -96,7 +104,7 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
                 </span>
                 <span className="mt-3 block max-w-[56ch] text-base leading-relaxed text-fg-muted md:text-lg">{row.tagline}</span>
               </span>
-              <span className="col-start-2 flex flex-wrap items-center gap-x-6 gap-y-3 md:col-start-3 md:row-start-1 md:flex-col md:items-end md:pt-3">
+              <span className="col-start-2 flex flex-wrap items-center gap-x-6 gap-y-3 md:col-start-3 md:row-start-1 md:flex-col md:items-end md:pt-3 md:light:-my-10 md:light:self-stretch md:light:border-l md:light:border-line md:light:pb-10 md:light:pl-8 md:light:pt-[calc(2.5rem+0.75rem)]">
                 <EvidenceBadge strength={row.strength} />
                 <span className="text-sm text-fg-muted">
                   From <span className="font-semibold text-fg">{row.fromZar}</span>
@@ -104,7 +112,7 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
                 </span>
                 <span
                   aria-hidden
-                  className="hidden h-12 w-12 place-items-center rounded-full border border-line-strong text-lg transition-[background,color,border-color,transform] duration-500 group-hover:-rotate-45 group-hover:border-[var(--glow)] group-hover:bg-[var(--glow)] group-hover:text-bg md:grid"
+                  className="hidden h-12 w-12 place-items-center rounded-full border border-line-strong text-lg transition-[background,color,border-color,transform] duration-500 group-hover:-rotate-45 group-hover:border-[var(--glow)] group-hover:bg-[var(--glow)] group-hover:text-bg md:grid light:rounded-[6px] light:bg-fg/5 light:group-hover:translate-x-1 light:group-hover:rotate-0 light:group-hover:text-white"
                 >
                   →
                 </span>
@@ -122,7 +130,7 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
         >
           <div
             className={clsx(
-              "relative -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[var(--radius-lg)] border border-line-strong shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9)] transition-[opacity,scale] duration-500 ease-[var(--ease-out)]",
+              "relative -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[var(--radius-lg)] border border-line-strong shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9)] transition-[opacity,scale] duration-500 ease-[var(--ease-out)] light:rounded-none light:shadow-[var(--shadow-panel)]",
               "aspect-[4/3] w-[320px]",
               active === null ? "scale-75 opacity-0" : "scale-100 opacity-100",
             )}
@@ -141,7 +149,7 @@ export function ServiceIndexList({ rows }: { rows: IndexRow[] }) {
                 ) : (
                   <GradientArt className="absolute inset-0" mark={row.n} seed={i} />
                 )}
-                <span className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-white/85 backdrop-blur">
+                <span className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-white/85 backdrop-blur light:bottom-0 light:left-0 light:rounded-none light:border-0 light:bg-tint-neon light:px-2.5 light:py-1.5 light:text-xs light:normal-case light:tracking-normal light:text-black light:backdrop-blur-none">
                   {row.image ? "From the evidence" : `Service ${row.n}`}
                 </span>
               </div>

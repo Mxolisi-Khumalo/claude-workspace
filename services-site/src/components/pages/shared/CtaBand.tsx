@@ -2,7 +2,11 @@ import { profile } from "@/content";
 import { RevealText } from "@/components/ui/RevealText";
 import { ConciergeButton } from "./ConciergeButton";
 
-/** Compact closing call to action that opens the concierge. */
+/**
+ * Compact closing call to action that opens the concierge. Dark: a glass
+ * card with a glow. Light: a white cell ruled from rail to rail (callers put
+ * it in a `mkp-sec` row).
+ */
 export function CtaBand({
   eyebrow = "// Ready when you are",
   title,
@@ -19,11 +23,11 @@ export function CtaBand({
   seedPrompt?: string;
 }) {
   return (
-    <div className="mkp-card relative overflow-hidden px-6 py-12 md:px-14 md:py-16">
+    <div className="mkp-card mkp-bleed relative overflow-hidden px-6 py-12 md:px-14 md:py-16 light:py-16 md:light:py-20">
       <span className="mkp-card-edge" />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-24 -top-32 h-[420px] w-[420px] rounded-full bg-[var(--glow,var(--accent))] opacity-[0.14] blur-[90px]"
+        className="pointer-events-none absolute -right-24 -top-32 h-[420px] w-[420px] rounded-full bg-[var(--glow,var(--accent))] opacity-[0.14] blur-[90px] light:hidden"
       />
       <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-50" />
       <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">

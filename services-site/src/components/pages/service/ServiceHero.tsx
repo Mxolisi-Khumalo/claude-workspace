@@ -38,8 +38,8 @@ export function ServiceHero({ service, index }: { service: Service; index: numbe
 
         <p className="eyebrow mt-10 flex items-center gap-3 md:mt-14">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--glow)] opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--glow)]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--glow)] opacity-60 light:rounded-none" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--glow)] light:rounded-none" />
           </span>
           {`// Service ${n}`}
         </p>
@@ -81,21 +81,23 @@ export function ServiceHero({ service, index }: { service: Service; index: numbe
           as="div"
           delay={0.55}
           immediate
-          className="mt-16 grid grid-cols-2 border-y border-line md:mt-20 lg:grid-cols-4"
+          // Light: a row of ruled cells bled out to the rails; the next section draws the bottom rule.
+          className="mt-16 grid grid-cols-2 border-y border-line md:mt-20 lg:grid-cols-4 light:-mx-[var(--gutter)] light:border-b-0"
         >
           {facts.map((f, i) => (
             <dl
               key={f.k}
               data-reveal
               className={
-                "min-w-0 py-6 pr-4 md:py-8 " +
+                "min-w-0 py-6 pr-4 md:py-8 light:px-6 " +
                 (i % 2 === 1 ? "border-l border-line pl-4 md:pl-6 " : "") +
                 (i >= 2 ? "border-t border-line lg:border-t-0 " : "") +
-                (i === 2 ? "lg:border-l lg:pl-6" : "")
+                (i === 0 ? "light:pl-[var(--gutter)] " : "") +
+                (i === 2 ? "lg:border-l lg:pl-6 light:pl-[var(--gutter)] lg:light:pl-6" : "")
               }
             >
               <dt className="eyebrow">{f.k}</dt>
-              <dd className="mt-3 text-2xl font-semibold tracking-tight text-fg [overflow-wrap:anywhere] md:text-3xl">{f.v}</dd>
+              <dd className="mt-3 text-2xl font-semibold tracking-tight text-fg [overflow-wrap:anywhere] md:text-3xl light:font-medium">{f.v}</dd>
               <dd className="mt-1 text-sm leading-snug text-fg-subtle">{f.sub}</dd>
             </dl>
           ))}

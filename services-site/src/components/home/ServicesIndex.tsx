@@ -24,7 +24,7 @@ export function ServicesIndex({ services }: { services: Service[] }) {
   });
 
   return (
-    <section id="services" aria-label="Services" className="relative scroll-mt-24 py-20 md:py-32">
+    <section id="services" aria-label="Services" className="relative scroll-mt-24 py-20 md:py-32 light:py-16 md:light:py-24">
       <div className="container-x">
         <SectionHeading
           eyebrow="// 01 — Services"
@@ -36,7 +36,7 @@ export function ServicesIndex({ services }: { services: Service[] }) {
             </>
           }
         />
-        <div className="mt-14 md:mt-20">
+        <div className="mt-14 md:mt-20 light:mt-0">
           <ServiceRows items={items} />
         </div>
       </div>

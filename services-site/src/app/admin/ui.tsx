@@ -47,7 +47,8 @@ export function Pill({ tone = "muted", children }: { tone?: Tone; children: Reac
   return (
     <span
       className={clsx(
-        "inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider",
+        // Light: black text on the tint (Universe's tags) — tone-coloured text on a tint over paper drops below 4.5:1.
+        "inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider light:rounded-[4px] light:text-xs light:normal-case light:tracking-normal light:text-fg",
         tones[tone],
       )}
     >
@@ -86,7 +87,7 @@ export function AdminHeader({
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-full border border-line-strong px-4 py-2 text-xs font-semibold text-fg-muted transition-colors hover:border-accent hover:text-accent"
+              className="rounded-[var(--radius-button)] border border-line-strong px-4 py-2 text-xs font-semibold text-fg-muted transition-colors hover:border-accent hover:text-accent light:rounded-[6px] light:bg-fg/5 light:text-fg light:hover:border-fg/60 light:hover:text-fg"
             >
               Sign out
             </button>

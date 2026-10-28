@@ -18,6 +18,11 @@ const STARTERS = [
 
 const MAX_CHARS = 2000;
 
+/** Light theme: Byte's bubbles are square white cells with a green rule on the left. */
+const BOT_BUBBLE_LIGHT = "light:rounded-none light:border-l-2 light:border-l-accent light:bg-surface";
+/** Light theme: suggestion chips use GitHub Universe's secondary button style. */
+const CHIP_LIGHT = "light:rounded-[6px] light:bg-black/5 light:text-fg light:hover:border-fg/60 light:hover:bg-black/[0.08]";
+
 /**
  * The concierge conversation UI, shared by the floating dock and the inline
  * home-page section. Includes the POPIA notice gate, streaming messages,
@@ -71,41 +76,59 @@ export function ChatPanel({
   return (
     <section
       aria-label="Project concierge chat"
-      className={clsx("relative flex min-h-0 flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85 backdrop-blur-xl", className)}
+      className={clsx(
+        "relative flex min-h-0 flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85 backdrop-blur-xl",
+        // Light: a white, square GitHub Universe "ticket" box on a 1px rule.
+        "light:rounded-none light:border-line-strong light:bg-surface light:backdrop-blur-none",
+        className,
+      )}
     >
       {/* Header */}
       <header className="flex items-center gap-3 border-b border-line px-4 py-3">
         <MiniBot mood={chat.mood} size={34} />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2 text-sm font-semibold">
-            Byte <span className="font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-fg-subtle">AI concierge</span>
+            Byte <span className="font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-fg-subtle light:text-[11px] light:normal-case light:tracking-normal">AI concierge</span>
           </p>
           <p className="truncate text-xs text-fg-muted">
             {chat.streaming ? (chat.tool?.status === "running" ? `${chat.tool.label}…` : "Typing…") : "Scopes, quotes & books — you confirm every action"}
           </p>
         </div>
         {chat.demo && (
-          <span className="rounded-full border border-amber/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber" title="No real bookings, emails or charges">
+          <span
+            className="rounded-full border border-amber/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber light:rounded-none light:border-transparent light:bg-tint-olive light:text-black"
+            title="No real bookings, emails or charges"
+          >
             Demo
           </span>
         )}
         {chat.messages.length > 0 && (
-          <button type="button" onClick={resetChat} className="rounded-full px-2 py-1 text-xs text-fg-subtle transition-colors hover:text-fg" title="Start a new conversation">
+          <button
+            type="button"
+            onClick={resetChat}
+            className="rounded-full px-2 py-1 text-xs text-fg-subtle transition-colors hover:text-fg light:rounded-[6px] light:font-mono light:text-fg-muted light:hover:bg-black/5 light:hover:text-fg"
+            title="Start a new conversation"
+          >
             New
           </button>
         )}
         {onClose && (
-          <button type="button" onClick={onClose} aria-label="Close chat" className="grid h-8 w-8 place-items-center rounded-full border border-line text-fg-muted transition-colors hover:border-accent hover:text-fg">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close chat"
+            className="grid h-8 w-8 place-items-center rounded-full border border-line text-fg-muted transition-colors hover:border-accent hover:text-fg light:rounded-[6px] light:border-line-strong light:bg-black/5 light:hover:border-fg/60"
+          >
             ✕
           </button>
         )}
       </header>
 
       {/* Transcript */}
-      <div ref={scroller} data-lenis-prevent className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5" aria-live="polite" aria-busy={chat.streaming}>
+      <div ref={scroller} data-lenis-prevent className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 light:bg-bg-elevated" aria-live="polite" aria-busy={chat.streaming}>
         {chat.messages.length === 0 && (
           <div className="space-y-4">
-            <div className="max-w-[90%] rounded-2xl rounded-tl-sm border border-line bg-surface/70 px-4 py-3 text-sm leading-relaxed text-fg-muted">
+            <div className={clsx("max-w-[90%] rounded-2xl rounded-tl-sm border border-line bg-surface/70 px-4 py-3 text-sm leading-relaxed text-fg-muted", BOT_BUBBLE_LIGHT)}>
               <RichText text={"Hi, I'm **Byte**, Mxolisi's AI project concierge. Tell me what you'd like to build and I'll match you with the right service, show you real work that proves it, and give you an instant ballpark quote.\n\nWhen you're ready I can book a call, email the quote or set up a deposit — you confirm every step."} />
             </div>
             {chat.privacyAccepted && (
@@ -115,7 +138,7 @@ export function ChatPanel({
                     key={s}
                     type="button"
                     onClick={() => void sendChat({ message: s, context })}
-                    className="rounded-full border border-line-strong bg-surface/60 px-3.5 py-1.5 text-left text-sm text-fg-muted transition-colors hover:border-accent hover:text-fg"
+                    className={clsx("rounded-full border border-line-strong bg-surface/60 px-3.5 py-1.5 text-left text-sm text-fg-muted transition-colors hover:border-accent hover:text-fg", CHIP_LIGHT)}
                   >
                     {s}
                   </button>
@@ -131,7 +154,9 @@ export function ChatPanel({
               <div
                 className={clsx(
                   "max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                  m.role === "user" ? "rounded-tr-sm bg-accent text-accent-ink" : "rounded-tl-sm border border-line bg-surface/70 text-fg-muted",
+                  m.role === "user"
+                    ? "rounded-tr-sm bg-accent text-accent-ink light:rounded-none light:bg-fg light:text-bg"
+                    : clsx("rounded-tl-sm border border-line bg-surface/70 text-fg-muted", BOT_BUBBLE_LIGHT),
                 )}
               >
                 {m.role === "user" ? (
@@ -154,12 +179,12 @@ export function ChatPanel({
         ))}
 
         {chat.tool?.status === "running" && (
-          <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
+          <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle light:normal-case light:tracking-normal">
             <span className="h-1.5 w-1.5 animate-ping rounded-full bg-violet" /> {chat.tool.label}
           </p>
         )}
         {chat.error && (
-          <p role="alert" className="rounded-xl border border-amber/40 bg-amber/10 px-3 py-2 text-sm text-amber">
+          <p role="alert" className="rounded-xl border border-amber/40 bg-amber/10 px-3 py-2 text-sm text-amber light:rounded-none light:bg-surface">
             {chat.error}
           </p>
         )}
@@ -167,7 +192,7 @@ export function ChatPanel({
 
       {/* Privacy gate or composer */}
       {!chat.privacyAccepted ? (
-        <div className="border-t border-line bg-surface/60 p-4">
+        <div className="border-t border-line bg-surface/60 p-4 light:bg-surface">
           <p className="text-xs leading-relaxed text-fg-muted">
             You&apos;re chatting with an AI assistant. Messages and any details you share are stored and processed (including by
             providers outside South Africa) only to respond to your enquiry, quote, book or invoice. Please don&apos;t share ID
@@ -184,9 +209,12 @@ export function ChatPanel({
               // The button unmounts; carry focus on to the composer that replaces it.
               requestAnimationFrame(() => input.current?.focus());
             }}
-            className="mt-3 w-full rounded-full bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)]"
+            className="mt-3 flex w-full items-center justify-center rounded-[var(--radius-button)] bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-[box-shadow,background-color] hover:shadow-[var(--glow-accent)] light:justify-between light:px-4 light:py-3 light:font-[550] light:hover:bg-accent-hover light:hover:shadow-none"
           >
             I understand — start chatting
+            <span aria-hidden className="hidden light:inline">
+              →
+            </span>
           </button>
         </div>
       ) : (
@@ -197,7 +225,7 @@ export function ChatPanel({
             submit();
           }}
         >
-          <div className="flex items-end gap-2 rounded-2xl border border-line bg-bg/70 p-2 transition-colors focus-within:border-accent/60">
+          <div className="flex items-end gap-2 rounded-2xl border border-line bg-bg/70 p-2 transition-colors focus-within:border-accent/60 light:rounded-none light:border-line-strong light:bg-surface light:p-1.5 light:focus-within:border-accent">
             <label htmlFor={`chat-input-${variant}`} className="sr-only">
               Message Byte
             </label>
@@ -227,7 +255,7 @@ export function ChatPanel({
               type="submit"
               disabled={!draft.trim() || chat.streaming}
               aria-label="Send message"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink transition-[opacity,box-shadow] hover:shadow-[var(--glow-accent)] disabled:opacity-40"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink transition-[opacity,box-shadow,background-color] hover:shadow-[var(--glow-accent)] disabled:opacity-40 light:rounded-none light:hover:bg-accent-hover light:hover:shadow-none"
             >
               ↑
             </button>

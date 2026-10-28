@@ -49,6 +49,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // Light is the default; the inline script below switches to a saved
+      // "dark" before first paint (React leaves the attribute alone after that).
+      data-theme="light"
       suppressHydrationWarning
       className={`${mona.variable} ${hubot.variable} ${jetbrains.variable} ${monaMono.variable} antialiased`}
     >
@@ -63,11 +66,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <Preloader />
         <ImmersiveBackground />
+        <div aria-hidden className="blueprint-rails" />
         {/* The concierge dock makes this shell inert while its modal panel is open. */}
         <div id="site-shell">
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--radius-button)] focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink"
           >
             Skip to content
           </a>

@@ -11,7 +11,7 @@ function Item({ service, dir }: { service: Service; dir: "prev" | "next" }) {
       data-cursor="view"
       data-cursor-label={next ? "Next" : "Prev"}
       className={clsx(
-        "group relative flex min-h-[220px] flex-col justify-between gap-10 overflow-hidden py-10 transition-colors duration-500 hover:bg-white/[0.02] md:min-h-[300px] md:py-14",
+        "group relative flex min-h-[220px] flex-col justify-between gap-10 overflow-hidden py-10 transition-colors duration-500 hover:bg-fg/[0.02] md:min-h-[300px] md:py-14 light:hover:bg-fg/[0.035]",
         next ? "md:items-end md:pl-10 md:text-right" : "md:pr-10",
       )}
     >

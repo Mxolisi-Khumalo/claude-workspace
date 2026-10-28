@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function WorkIndexPage() {
   return (
     <>
-      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)]">
+      <header className="relative overflow-hidden pt-[calc(var(--nav-h)+2.5rem)] md:pt-[calc(var(--nav-h)+4rem)] light:pb-16 md:light:pb-24">
         <div aria-hidden className="grid-bg pointer-events-none absolute inset-x-0 top-0 h-full opacity-60" />
         <div className="container-x relative">
           <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: "Work" }]} />
@@ -38,15 +38,16 @@ export default function WorkIndexPage() {
         </div>
       </header>
 
-      <section aria-label="Case studies" className="container-x py-20 md:py-28">
-        <GlowGroup className="grid gap-5 md:grid-cols-2">
+      {/* Light: a ruled grid of cells (no stagger), bled out to the rails. */}
+      <section aria-label="Case studies" className="mkp-sec container-x py-20 md:py-28">
+        <GlowGroup className="mkp-cells grid gap-5 md:grid-cols-2">
           {caseStudies.map((c, i) => (
             <CaseStudyCard key={c.slug} study={c} headingLevel="h2" sizes="(min-width: 768px) 45vw, 100vw" className={i % 2 === 1 ? "md:translate-y-16" : undefined} />
           ))}
         </GlowGroup>
       </section>
 
-      <div className="container-x pb-8 pt-8 md:pt-16">
+      <div className="mkp-sec container-x pb-8 pt-8 md:pt-16 light:border-b light:border-line">
         <CtaBand
           title="Need something built like this?"
           body="Tell Byte, my AI project concierge, what you have in mind. It will map it to a service, show the closest evidence and give you a ballpark quote."

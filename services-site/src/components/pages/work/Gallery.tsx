@@ -12,9 +12,9 @@ import { media } from "../shared/media";
 export function Gallery({ images, title, mark }: { images: string[]; title: string; mark: string }) {
   if (images.length === 0) {
     return (
-      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-line">
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-line light:rounded-none">
         <GradientArt className="relative aspect-[16/10] md:aspect-[21/9]" mark={mark} />
-        <p className="absolute bottom-5 left-5 right-5 max-w-md font-mono text-xs leading-relaxed text-white/80 md:bottom-8 md:left-8">
+        <p className="absolute bottom-5 left-5 right-5 max-w-md font-mono text-xs leading-relaxed text-white/80 md:bottom-8 md:left-8 light:text-fg">
           No screenshots are published for this project yet — the code itself is public, linked below.
         </p>
       </div>

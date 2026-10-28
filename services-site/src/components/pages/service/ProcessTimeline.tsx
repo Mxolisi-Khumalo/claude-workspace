@@ -80,23 +80,23 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
       <span
         aria-hidden
         data-fill-y
-        className="absolute bottom-6 left-[19px] top-5 w-px origin-top bg-[var(--glow)] shadow-[0_0_12px_var(--glow)] lg:hidden"
+        className="absolute bottom-6 left-[19px] top-5 w-px origin-top bg-[var(--glow)] shadow-[0_0_12px_var(--glow)] lg:hidden light:shadow-none"
       />
       {/* Horizontal track (desktop) */}
       <span aria-hidden className="absolute left-5 right-0 top-5 hidden h-px bg-line lg:block" />
       <span
         aria-hidden
         data-fill-x
-        className="absolute left-5 right-0 top-5 hidden h-px origin-left bg-[var(--glow)] shadow-[0_0_12px_var(--glow)] lg:block"
+        className="absolute left-5 right-0 top-5 hidden h-px origin-left bg-[var(--glow)] shadow-[0_0_12px_var(--glow)] lg:block light:shadow-none"
       />
 
       <ol className={clsx("relative grid gap-10 lg:gap-8", cols[steps.length] ?? "lg:grid-cols-4")}>
         {steps.map((s, i) => (
           <li key={s.step} data-step className="relative pl-16 lg:pl-0 lg:pt-16">
-            <span className="mkp-step-node absolute left-0 top-0 grid h-10 w-10 place-items-center rounded-full border font-mono text-xs font-semibold">
+            <span className="mkp-step-node absolute left-0 top-0 grid h-10 w-10 place-items-center rounded-full border font-mono text-xs font-semibold light:rounded-none">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <h3 className="pt-1.5 text-xl font-semibold tracking-tight lg:pt-0">{s.step}</h3>
+            <h3 className="pt-1.5 text-xl font-semibold tracking-tight lg:pt-0 light:font-medium">{s.step}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-fg-muted">{s.detail}</p>
           </li>
         ))}

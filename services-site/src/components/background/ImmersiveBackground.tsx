@@ -60,21 +60,24 @@ void main() {
 
   if (uTheme > 0.5) {
     vec3 paper = vec3(0.914, 0.929, 0.925);
-    vec3 lg = vec3(0.549, 0.949, 0.651);
-    vec3 lv = vec3(0.859, 0.749, 0.992);
-    vec3 lb = vec3(0.737, 0.925, 1.0);
+    // Washes are pale pastels at least as light as the paper (relative luminance
+    // >= paper's), so tinting never darkens what text sits on: the light theme's
+    // contrast is specified against --bg (#e9edec), and green text on it has
+    // little headroom (4.65:1). No vignette for the same reason (and Universe's
+    // paper is flat).
+    vec3 lg = vec3(0.80, 0.97, 0.84);
+    vec3 lv = vec3(0.94, 0.92, 1.0);
+    vec3 lb = vec3(0.86, 0.95, 1.0);
     vec3 ltint = mix(mix(lg, lb, hue), lv, clamp(r.x * 1.3 - 0.2, 0.0, 1.0));
     float lband = smoothstep(0.5, 1.0, f) * (0.3 + 0.7 * uv.y);
-    vec3 col = mix(paper, ltint, lband * 0.32);
-    col = mix(col, ltint, 0.28 * exp(-d * 3.0));
+    vec3 col = mix(paper, ltint, lband * 0.5);
+    col = mix(col, ltint, 0.4 * exp(-d * 3.0));
     // Blueprint grid: 24px cells in CSS pixels, stronger near the pointer.
     float cell = 24.0 * uPxScale;
     // Distance (in canvas px) to the nearest grid line.
     vec2 gg = abs(fract(gl_FragCoord.xy / cell + 0.5) - 0.5) * cell;
     float grid = 1.0 - smoothstep(0.0, max(0.6, uPxScale), min(gg.x, gg.y));
     col -= vec3(0.02, 0.018, 0.02) * grid * (0.55 + 1.6 * exp(-d * 2.2));
-    // A whisper of vignette keeps the edges calm.
-    col *= 1.0 - 0.06 * pow(length(uv - 0.5) * 1.3, 2.0);
     outColor = vec4(col, 1.0);
     return;
   }

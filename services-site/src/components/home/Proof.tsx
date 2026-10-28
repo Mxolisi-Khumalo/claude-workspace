@@ -24,21 +24,15 @@ export interface ProofCardData {
 }
 
 function Art({ title, accent }: { title: string; accent: string }) {
-  // Generated cover for case studies without screenshots.
+  // Generated cover for case studies without screenshots (themed in home.css).
   return (
-    <div
-      aria-hidden
-      className="absolute inset-0 overflow-hidden"
-      style={{
-        background: `radial-gradient(60% 80% at 20% 0%, color-mix(in srgb, ${accent} 55%, transparent), transparent 70%), radial-gradient(50% 70% at 85% 10%, rgb(163 113 247 / 0.55), transparent 70%), radial-gradient(70% 60% at 50% 120%, rgb(255 166 87 / 0.35), transparent 70%), #0b0d12`,
-      }}
-    >
-      <div className="grid-bg absolute inset-0 opacity-50" />
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[repeating-linear-gradient(90deg,rgb(255_255_255/0.06)_0_1px,transparent_1px_22px)] [mask-image:linear-gradient(to_top,black,transparent)]" />
-      <p className="display absolute bottom-4 left-5 right-5 truncate text-[clamp(1.8rem,3vw,2.6rem)] text-white/90">
+    <div aria-hidden className="hm-art absolute inset-0 overflow-hidden" style={{ "--art": accent } as React.CSSProperties}>
+      <div className="grid-bg absolute inset-0 opacity-50 light:opacity-80" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[repeating-linear-gradient(90deg,rgb(255_255_255/0.06)_0_1px,transparent_1px_22px)] [mask-image:linear-gradient(to_top,black,transparent)] light:bg-[repeating-linear-gradient(90deg,rgb(0_0_0/0.07)_0_1px,transparent_1px_22px)]" />
+      <p className="display absolute bottom-4 left-5 right-5 truncate text-[clamp(1.8rem,3vw,2.6rem)] text-white/90 light:text-fg">
         {title.split(" — ")[0]}
       </p>
-      <p className="absolute right-4 top-4 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/80">
+      <p className="absolute right-4 top-4 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/80 light:rounded-none light:border-0 light:bg-tint-neon light:px-2 light:text-[11px] light:normal-case light:tracking-normal light:text-black">
         Phase one · in progress
       </p>
     </div>
@@ -48,6 +42,7 @@ function Art({ title, accent }: { title: string; accent: string }) {
 /**
  * Case studies as a pinned, scrubbed horizontal track on large screens with
  * motion allowed; a plain responsive grid everywhere else (and without JS).
+ * Light: square white panels on 1px rules, sliding between ruled edges.
  */
 export function Proof({ items }: { items: ProofCardData[] }) {
   const section = useRef<HTMLElement>(null);
@@ -113,10 +108,10 @@ export function Proof({ items }: { items: ProofCardData[] }) {
   );
 
   return (
-    <section ref={section} id="proof" aria-label="Proof" className="hm-proof hm-glow-host relative scroll-mt-24 py-20 md:py-32 lg:py-0">
-      <div ref={pin} className="hm-proof-pin lg:py-32">
-        <div ref={track} className="hm-proof-track container-x grid gap-6 md:grid-cols-2">
-          <div className="hm-proof-intro flex flex-col justify-between gap-8 md:col-span-2 lg:mb-6">
+    <section ref={section} id="proof" aria-label="Proof" className="hm-proof hm-glow-host relative scroll-mt-24 py-20 md:py-32 lg:py-0 light:py-16 md:light:py-24 lg:light:py-0">
+      <div ref={pin} className="hm-proof-pin lg:py-32 lg:light:py-24">
+        <div ref={track} className="hm-proof-track container-x grid gap-6 md:grid-cols-2 light:border-y light:border-line light:py-10">
+          <div className="hm-proof-intro flex flex-col justify-between gap-8 md:col-span-2 lg:mb-6 light:mb-4">
             <div>
               <p className="eyebrow mb-5">{"// 02 — Proof"}</p>
               <RevealText as="h2" className="display max-w-4xl text-[clamp(2.5rem,6.5vw,6rem)]">
@@ -127,12 +122,12 @@ export function Proof({ items }: { items: ProofCardData[] }) {
                 every outcome below is something the code demonstrably does.
               </p>
             </div>
-            <p className="hm-proof-hint hidden font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
+            <p className="hm-proof-hint hidden font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle light:text-xs light:normal-case light:tracking-normal">
               <span className="text-accent">→</span> Keep scrolling
             </p>
           </div>
 
-          <p className="hm-swipe-hint -mb-2 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
+          <p className="hm-swipe-hint -mb-2 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle light:text-xs light:normal-case light:tracking-normal">
             Swipe through {numberWord(items.length)} case studies <span aria-hidden className="text-accent">→</span>
           </p>
           <div className="hm-swipe" role="list" aria-label="Case studies">
@@ -140,7 +135,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
               <article
                 role="listitem"
                 key={c.slug}
-                className="hm-proof-card hm-glow group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85"
+                className="hm-proof-card hm-glow group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85 light:rounded-none light:border-line-strong light:bg-surface"
                 style={{ "--glow": c.accent } as React.CSSProperties}
               >
                 <div className="hm-proof-media relative aspect-[16/10] overflow-hidden border-b border-line bg-surface">
@@ -155,7 +150,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
                   ) : (
                     <Art title={c.title} accent={c.accent} />
                   )}
-                  <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-fg backdrop-blur">
+                  <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-fg backdrop-blur light:left-0 light:top-0 light:rounded-none light:border-0 light:border-b light:border-r light:border-line-strong light:bg-surface light:px-3 light:py-1.5 light:text-[11px] light:tracking-normal light:backdrop-blur-none">
                     {pad2(i + 1)} / {pad2(items.length)}
                   </span>
                 </div>
@@ -165,7 +160,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
                   <p className="mt-3 text-[15px] leading-relaxed text-fg-muted">{c.summary}</p>
                   <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Stack">
                     {c.stack.slice(0, 5).map((t) => (
-                      <li key={t} className="rounded-full border border-line-strong px-2.5 py-1 font-mono text-[10px] text-fg-muted">
+                      <li key={t} className="rounded-full border border-line-strong px-2.5 py-1 font-mono text-[10px] text-fg-muted light:rounded-[4px] light:text-[11px]">
                         {t}
                       </li>
                     ))}
@@ -174,7 +169,10 @@ export function Proof({ items }: { items: ProofCardData[] }) {
                     )}
                   </ul>
                   <div className="mt-5 border-t border-line pt-4">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: c.accent }}>
+                    <p
+                      className="font-mono text-[10px] uppercase tracking-[0.16em] light:text-[11px] light:normal-case light:tracking-normal"
+                      style={{ color: c.accent }}
+                    >
                       Outcome
                     </p>
                     <p className="mt-2 text-sm leading-relaxed text-fg">{c.outcome}</p>
@@ -205,7 +203,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
           </div>
         </div>
 
-        <div className="hm-proof-progress container-x mt-8 hidden items-center gap-5 font-mono text-[11px] tracking-[0.16em] text-fg-subtle">
+        <div className="hm-proof-progress container-x mt-8 hidden items-center gap-5 font-mono text-[11px] tracking-[0.16em] text-fg-subtle light:text-xs light:tracking-normal">
           <span>
             <span ref={count} className="text-fg">
               01
@@ -215,7 +213,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
           <span className="relative h-px flex-1 overflow-hidden bg-line-strong">
             <span ref={bar} className="absolute inset-0 origin-left bg-accent" style={{ transform: "scaleX(0)" }} />
           </span>
-          <span className="uppercase">Scroll</span>
+          <span className="uppercase light:normal-case">Scroll</span>
         </div>
       </div>
     </section>
