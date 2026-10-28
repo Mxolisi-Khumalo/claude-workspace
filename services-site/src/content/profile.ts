@@ -16,7 +16,7 @@ export const profile: Profile = {
   subhead:
     "Full-stack development services from Johannesburg — interactive websites, web apps, cloud backends and AI assistants, each backed by real, inspectable work.",
   valueProps: [
-    "Evidence over adjectives — every service links to code you can inspect.",
+    "Evidence over adjectives — every service links to real work you can inspect, usually the code itself.",
     "Fixed, published starting prices and an instant quote from the concierge.",
     "Weekly demos on a live staging link, so you never wonder what's happening.",
     "Clean, tested, documented code that you own outright.",

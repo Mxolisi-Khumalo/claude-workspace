@@ -11,8 +11,8 @@ function Item({ service, dir }: { service: Service; dir: "prev" | "next" }) {
       data-cursor="view"
       data-cursor-label={next ? "Next" : "Prev"}
       className={clsx(
-        "group relative flex min-h-[220px] flex-col justify-between gap-10 overflow-hidden px-[var(--gutter)] py-10 transition-colors duration-500 hover:bg-white/[0.02] md:min-h-[300px] md:py-14",
-        next && "md:items-end md:text-right",
+        "group relative flex min-h-[220px] flex-col justify-between gap-10 overflow-hidden py-10 transition-colors duration-500 hover:bg-white/[0.02] md:min-h-[300px] md:py-14",
+        next ? "md:items-end md:pl-10 md:text-right" : "md:pr-10",
       )}
     >
       <span className="eyebrow flex items-center gap-3">
@@ -46,10 +46,13 @@ function Item({ service, dir }: { service: Service; dir: "prev" | "next" }) {
 
 export function PrevNext({ prev, next }: { prev: Service; next: Service }) {
   return (
-    <nav aria-label="More services" className="grid border-y border-line md:grid-cols-2">
-      <Item service={prev} dir="prev" />
-      <div className="border-t border-line md:border-l md:border-t-0">
-        <Item service={next} dir="next" />
+    // Top rule only: the footer below draws its own, so a bottom border would double up.
+    <nav aria-label="More services" className="border-t border-line">
+      <div className="container-x grid md:grid-cols-2">
+        <Item service={prev} dir="prev" />
+        <div className="border-t border-line md:border-l md:border-t-0">
+          <Item service={next} dir="next" />
+        </div>
       </div>
     </nav>
   );

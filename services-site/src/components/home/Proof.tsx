@@ -98,8 +98,8 @@ export function Proof({ items }: { items: ProofCardData[] }) {
   );
 
   return (
-    <section ref={section} id="proof" aria-label="Proof" className="hm-proof hm-glow-host relative scroll-mt-24 py-28 md:py-40 lg:py-0">
-      <div ref={pin} className="hm-proof-pin lg:py-40">
+    <section ref={section} id="proof" aria-label="Proof" className="hm-proof hm-glow-host relative scroll-mt-24 py-20 md:py-32 lg:py-0">
+      <div ref={pin} className="hm-proof-pin lg:py-32">
         <div ref={track} className="hm-proof-track container-x grid gap-6 md:grid-cols-2">
           <div className="hm-proof-intro flex flex-col justify-between gap-8 md:col-span-2 lg:mb-6">
             <div>
@@ -117,71 +117,77 @@ export function Proof({ items }: { items: ProofCardData[] }) {
             </p>
           </div>
 
-          {items.map((c, i) => (
-            <article
-              key={c.slug}
-              className="hm-proof-card hm-glow group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85"
-              style={{ "--glow": c.accent } as React.CSSProperties}
-            >
-              <div className="hm-proof-media relative aspect-[16/10] overflow-hidden border-b border-line bg-surface">
-                {c.image ? (
-                  <Image
-                    src={c.image}
-                    alt={`Screenshot of ${c.title}`}
-                    fill
-                    sizes="(min-width: 1024px) 500px, (min-width: 768px) 50vw, 100vw"
-                    className="object-cover object-top transition-transform duration-[1.2s] ease-[var(--ease-out)] group-hover:scale-105"
-                  />
-                ) : (
-                  <Art title={c.title} accent={c.accent} />
-                )}
-                <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-fg backdrop-blur">
-                  {pad2(i + 1)} / {pad2(items.length)}
-                </span>
-              </div>
-
-              <div className="relative flex flex-1 flex-col p-6 lg:p-7">
-                <h3 className="text-[1.45rem] font-semibold leading-tight tracking-tight text-fg">{c.title}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-fg-muted">{c.summary}</p>
-                <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Stack">
-                  {c.stack.slice(0, 5).map((t) => (
-                    <li key={t} className="rounded-full border border-line-strong px-2.5 py-1 font-mono text-[10px] text-fg-muted">
-                      {t}
-                    </li>
-                  ))}
-                  {c.stack.length > 5 && (
-                    <li className="rounded-full px-1 py-1 font-mono text-[10px] text-fg-subtle">+{c.stack.length - 5}</li>
+          <p className="hm-swipe-hint -mb-2 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
+            Swipe through {numberWord(items.length)} case studies <span aria-hidden className="text-accent">→</span>
+          </p>
+          <div className="hm-swipe" role="list" aria-label="Case studies">
+            {items.map((c, i) => (
+              <article
+                role="listitem"
+                key={c.slug}
+                className="hm-proof-card hm-glow group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-bg-elevated/85"
+                style={{ "--glow": c.accent } as React.CSSProperties}
+              >
+                <div className="hm-proof-media relative aspect-[16/10] overflow-hidden border-b border-line bg-surface">
+                  {c.image ? (
+                    <Image
+                      src={c.image}
+                      alt={`Screenshot of ${c.title}`}
+                      fill
+                      sizes="(min-width: 1024px) 500px, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover object-top transition-transform duration-[1.2s] ease-[var(--ease-out)] group-hover:scale-105"
+                    />
+                  ) : (
+                    <Art title={c.title} accent={c.accent} />
                   )}
-                </ul>
-                <div className="mt-5 border-t border-line pt-4">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: c.accent }}>
-                    Outcome
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-fg">{c.outcome}</p>
+                  <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-fg backdrop-blur">
+                    {pad2(i + 1)} / {pad2(items.length)}
+                  </span>
                 </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-6 text-sm font-semibold">
-                  <Link
-                    href={`/work/${c.slug}`}
-                    data-cursor="link"
-                    className="group/l inline-flex items-center gap-2 text-fg transition-colors hover:text-accent"
-                  >
-                    Read case study
-                    <span aria-hidden className="transition-transform duration-300 group-hover/l:translate-x-1">→</span>
-                  </Link>
-                  <a
-                    href={c.repoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    data-cursor="link"
-                    className="inline-flex items-center gap-1.5 text-fg-muted transition-colors hover:text-fg"
-                  >
-                    View code <span aria-hidden>↗</span>
-                    <span className="sr-only">(opens GitHub in a new tab)</span>
-                  </a>
+
+                <div className="relative flex flex-1 flex-col p-6 lg:p-7">
+                  <h3 className="text-[1.45rem] font-semibold leading-tight tracking-tight text-fg">{c.title}</h3>
+                  <p className="mt-3 text-[15px] leading-relaxed text-fg-muted">{c.summary}</p>
+                  <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Stack">
+                    {c.stack.slice(0, 5).map((t) => (
+                      <li key={t} className="rounded-full border border-line-strong px-2.5 py-1 font-mono text-[10px] text-fg-muted">
+                        {t}
+                      </li>
+                    ))}
+                    {c.stack.length > 5 && (
+                      <li className="rounded-full px-1 py-1 font-mono text-[10px] text-fg-subtle">+{c.stack.length - 5}</li>
+                    )}
+                  </ul>
+                  <div className="mt-5 border-t border-line pt-4">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: c.accent }}>
+                      Outcome
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-fg">{c.outcome}</p>
+                  </div>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-6 text-sm font-semibold">
+                    <Link
+                      href={`/work/${c.slug}`}
+                      data-cursor="link"
+                      className="group/l inline-flex items-center gap-2 text-fg transition-colors hover:text-accent"
+                    >
+                      Read case study
+                      <span aria-hidden className="transition-transform duration-300 group-hover/l:translate-x-1">→</span>
+                    </Link>
+                    <a
+                      href={c.repoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-cursor="link"
+                      className="inline-flex items-center gap-1.5 text-fg-muted transition-colors hover:text-fg"
+                    >
+                      View code <span aria-hidden>↗</span>
+                      <span className="sr-only">(opens GitHub in a new tab)</span>
+                    </a>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
         </div>
 
         <div className="hm-proof-progress container-x mt-8 hidden items-center gap-5 font-mono text-[11px] tracking-[0.16em] text-fg-subtle">

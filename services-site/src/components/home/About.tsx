@@ -12,7 +12,7 @@ interface Testimonial {
 /** Portrait, bio, credentials, certifications marquee and the testimonial. */
 export function About({ profile, testimonial }: { profile: Profile; testimonial: Testimonial }) {
   return (
-    <section id="about" aria-label="About" className="relative scroll-mt-24 py-28 md:py-40">
+    <section id="about" aria-label="About" className="relative scroll-mt-24 py-20 md:py-32">
       <div className="container-x grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
         <div className="lg:sticky lg:top-28 lg:self-start">
           {profile.portrait && (

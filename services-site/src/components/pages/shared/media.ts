@@ -50,9 +50,9 @@ const MEDIA: Record<string, MediaMeta> = {
     alt: "Space Rocks: a shielded ship among drifting asteroids and planets on a starfield, with score, best score, wave number and lives on screen.",
   },
   "/images/about/mentoring-whiteboard.webp": {
-    width: 1600,
-    height: 900,
-    alt: "A group session: students seated in a circle listen to a presenter standing beside a screen.",
+    width: 1280,
+    height: 960,
+    alt: "Mxolisi working through a pixel-gradient colour formula step by step on a whiteboard during a mentoring session.",
   },
   "/images/about/pair-programming.webp": {
     width: 480,

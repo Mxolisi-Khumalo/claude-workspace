@@ -1,11 +1,11 @@
 import type { Service } from "@/content/types";
 import { SectionHeading } from "./SectionHeading";
 import { ServiceRows, type ServiceRowData } from "./ServiceRows";
-import { minPackage, numberWord } from "./utils";
+import { fromPrices, numberWord } from "./utils";
 
 export function ServicesIndex({ services }: { services: Service[] }) {
   const items: ServiceRowData[] = services.map((s) => {
-    const min = minPackage(s);
+    const from = fromPrices(s);
     const withImage = s.evidence.find((e) => e.image);
     return {
       slug: s.slug,
@@ -13,8 +13,8 @@ export function ServicesIndex({ services }: { services: Service[] }) {
       tagline: s.tagline,
       accent: s.accent,
       strength: s.evidenceStrength,
-      fromZar: min.priceFromZar,
-      fromUsd: min.priceFromUsd,
+      fromZar: from.zar,
+      fromUsd: from.usd,
       preview: {
         image: withImage?.image,
         caption: `Evidence · ${(withImage ?? s.evidence[0])?.project ?? s.title}`,
@@ -24,7 +24,7 @@ export function ServicesIndex({ services }: { services: Service[] }) {
   });
 
   return (
-    <section id="services" aria-label="Services" className="relative scroll-mt-24 py-28 md:py-40">
+    <section id="services" aria-label="Services" className="relative scroll-mt-24 py-20 md:py-32">
       <div className="container-x">
         <SectionHeading
           eyebrow="// 01 — Services"

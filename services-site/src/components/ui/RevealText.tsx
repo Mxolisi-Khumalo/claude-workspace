@@ -43,6 +43,12 @@ export function RevealText({
           mask: by === "chars" ? "words" : by,
           autoSplit: by === "lines",
           onSplit(self) {
+            // The masks clip at the line box, which cuts descenders (g, p, y)
+            // at .display's tight line-height; extend them without moving layout.
+            for (const m of self.masks as HTMLElement[]) {
+              m.style.paddingBottom = "0.14em";
+              m.style.marginBottom = "-0.14em";
+            }
             const targets = by === "chars" ? self.chars : by === "words" ? self.words : self.lines;
             return gsap.from(targets, {
               yPercent: 110,

@@ -90,7 +90,7 @@ export function Footer() {
       </div>
 
       <div aria-hidden className="pointer-events-none select-none overflow-hidden">
-        <p className="display translate-y-[18%] whitespace-nowrap text-center text-[22vw] leading-none text-white/[0.035]">
+        <p className="display translate-y-[18%] whitespace-nowrap text-center text-[15.5vw] leading-none text-white/[0.035]">
           MXOLISI
         </p>
       </div>

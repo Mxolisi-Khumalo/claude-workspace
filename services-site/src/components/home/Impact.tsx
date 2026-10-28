@@ -9,7 +9,7 @@ const PROP_COLORS = ["var(--accent)", "var(--violet)", "var(--sky)", "var(--ambe
 /** Count-up stats from the profile plus the four working principles. */
 export function Impact({ stats, valueProps }: { stats: Stat[]; valueProps: string[] }) {
   return (
-    <section aria-label="Impact" className="relative py-28 md:py-40">
+    <section aria-label="Impact" className="relative py-20 md:py-32">
       <div className="container-x">
         <p className="eyebrow mb-5">{"// By the numbers"}</p>
         <RevealText as="h2" className="display max-w-4xl text-[clamp(2.5rem,6.5vw,6rem)]">
@@ -25,7 +25,7 @@ export function Impact({ stats, valueProps }: { stats: Stat[]; valueProps: strin
               } ${i >= 2 ? "border-t border-line lg:border-t-0" : ""} ${i === 2 ? "lg:border-l lg:pl-8" : ""}`}
             >
               <dt className="max-w-[22ch] text-sm leading-snug text-fg-muted md:text-base">{s.label}</dt>
-              <dd className="display text-[clamp(2.75rem,5.6vw,5.25rem)] leading-none">
+              <dd className="display hm-figures text-[clamp(2.75rem,5.6vw,5.25rem)] leading-none">
                 <CountUp value={s.value} suffix={s.suffix} />
               </dd>
             </div>

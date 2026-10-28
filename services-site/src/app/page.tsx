@@ -11,7 +11,7 @@ import { Process } from "@/components/home/Process";
 import { Proof, type ProofCardData } from "@/components/home/Proof";
 import { ServicesIndex } from "@/components/home/ServicesIndex";
 import { TechMarquee } from "@/components/home/TechMarquee";
-import { minPackage } from "@/components/home/utils";
+import { fromPrices } from "@/components/home/utils";
 import "@/components/home/home.css";
 
 export const metadata: Metadata = {
@@ -42,7 +42,7 @@ function jsonLd() {
         itemOffered: { "@type": "Service", name: s.title, description: s.tagline },
         priceSpecification: {
           "@type": "PriceSpecification",
-          minPrice: minPackage(s).priceFromZar,
+          minPrice: fromPrices(s).zar,
           priceCurrency: "ZAR",
         },
       })),

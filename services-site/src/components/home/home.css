@@ -33,6 +33,13 @@
   }
 }
 
+/* Live-only details (the local clock) have nothing to show without JavaScript. */
+@media (scripting: none) {
+  .hm-js-only {
+    display: none !important;
+  }
+}
+
 /* Masked word reveal. Padding keeps descenders out of the clip. */
 .hm-word {
   display: inline-block;
@@ -111,10 +118,26 @@
   opacity: 0.55;
 }
 
-/* ---------- Outlined marquee type ----------------------------------------- */
+/* ---------- Figures -------------------------------------------------------
+ * The body's stylistic sets give Hubot Sans a barred zero ("R16 ØØØ"), which
+ * reads oddly in prices and stats. Big numerals use Mona Sans at the same
+ * width instead — the same treatment as .mkp-figures on the service pages.
+ */
+.hm-figures {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-feature-settings: normal;
+}
+
+/* ---------- Outlined marquee type -----------------------------------------
+ * Variable fonts draw overlapping contours, so a plain text-stroke shows stray
+ * lines inside letters. Painting the fill (canvas colour) over a doubled
+ * stroke hides the inner half and leaves a clean 1px outline.
+ */
 .hm-outline {
-  color: transparent;
-  -webkit-text-stroke: 1px rgb(255 255 255 / 0.38);
+  color: var(--bg);
+  -webkit-text-stroke: 2px rgb(255 255 255 / 0.42);
+  paint-order: stroke fill;
 }
 
 /* ---------- Cursor-following glow border (GitHub style) -------------------
@@ -219,6 +242,42 @@
     background 0.3s,
     border-color 0.3s,
     color 0.3s;
+}
+
+/* ---------- Phone swipe rows ---------------------------------------------
+ * Long card lists (case studies, pricing) become a native, snap-scrolling
+ * row on phones instead of a very tall stack. From 768px up the wrapper
+ * dissolves and the cards fall back into their parent's grid or track.
+ */
+.hm-swipe {
+  display: contents;
+}
+.hm-swipe-hint {
+  display: none;
+}
+@media (max-width: 767.98px) {
+  .hm-swipe {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 4px var(--gutter) 12px;
+    scrollbar-width: none;
+  }
+  .hm-swipe::-webkit-scrollbar {
+    display: none;
+  }
+  .hm-swipe > * {
+    flex: 0 0 min(86%, 360px);
+    scroll-snap-align: start;
+  }
+  .hm-swipe-hint {
+    display: flex;
+  }
 }
 
 /* ---------- Proof: pinned horizontal mode --------------------------------- */
@@ -342,12 +401,4 @@
   .hm-portrait:hover .hm-portrait-scan {
     opacity: 0;
   }
-}
-
-/* SplitText's line masks (overflow: clip) cut descenders at .display's tight
-   line-height; give them room without changing layout. */
-.hm-page h2 [style*="overflow: clip"],
-.hm-page h3 [style*="overflow: clip"] {
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
 }

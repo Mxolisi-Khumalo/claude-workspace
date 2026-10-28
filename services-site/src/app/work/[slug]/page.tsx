@@ -17,6 +17,14 @@ import "@/components/pages/pages.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/**
+ * Every slug is prerendered from src/content via generateStaticParams, so the
+ * page awaits `params` at the top (real 404 status for unknown slugs) and a
+ * client navigation simply waits for the static payload instead of flashing
+ * a placeholder. This opts the segment out of instant-navigation validation.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return caseStudies.map((c) => ({ slug: c.slug }));
 }

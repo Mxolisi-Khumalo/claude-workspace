@@ -1,3 +1,4 @@
+import { startingPrice } from "@/content";
 import type { Evidence, EvidenceStrength, Service } from "@/content/types";
 
 export type Currency = "ZAR" | "USD";
@@ -11,10 +12,10 @@ export function price(amount: number, currency: Currency): string {
   return currency === "ZAR" ? `R${grouped}` : `$${grouped}`;
 }
 
+/** The published "from" price: cheapest one-off package (monthly retainers excluded). */
 export function fromPrice(service: Service, currency: Currency = "ZAR"): string {
-  const key = currency === "ZAR" ? "priceFromZar" : "priceFromUsd";
-  const min = Math.min(...service.packages.map((p) => p[key]));
-  return price(min, currency);
+  const from = startingPrice(service);
+  return price(currency === "ZAR" ? from.zar : from.usd, currency);
 }
 
 export const pad = (n: number) => String(n).padStart(2, "0");
@@ -54,7 +55,7 @@ export const strengthCopy: Record<EvidenceStrength, { label: string; short: stri
     label: "Strong evidence",
     short: "Strong",
     explain:
-      "Several finished projects or a substantial public codebase show this service end to end. Every item below links to the code.",
+      "Several finished projects or a substantial track record show this service end to end. Every item below links to where you can check it.",
   },
   moderate: {
     label: "Moderate evidence",

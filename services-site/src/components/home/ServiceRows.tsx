@@ -139,7 +139,7 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
               <span className="flex items-center justify-between gap-6 md:justify-end">
                 <span className="flex flex-col md:items-end">
                   <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle">From</span>
-                  <span className="whitespace-nowrap text-lg font-semibold tabular-nums text-fg">
+                  <span className="whitespace-nowrap text-lg font-semibold text-fg">
                     {formatPrice(s.fromZar, "ZAR")}
                     <span className="text-fg-subtle"> / </span>
                     <span className="text-fg-muted">{formatPrice(s.fromUsd, "USD")}</span>

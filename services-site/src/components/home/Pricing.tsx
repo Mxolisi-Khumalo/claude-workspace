@@ -1,16 +1,16 @@
 import type { Service } from "@/content/types";
 import { PricingGrid, type PricingCardData } from "./PricingGrid";
 import { SectionHeading } from "./SectionHeading";
-import { minPackage } from "./utils";
+import { fromPrices } from "./utils";
 
 export function Pricing({ services }: { services: Service[] }) {
   const items: PricingCardData[] = services.map((s) => {
-    const min = minPackage(s);
+    const from = fromPrices(s);
     return {
       slug: s.slug,
       title: s.title,
       accent: `var(--${s.accent})`,
-      from: { zar: min.priceFromZar, usd: min.priceFromUsd },
+      from,
       packages: s.packages.map((p) => ({
         name: p.name,
         zar: p.priceFromZar,
@@ -22,7 +22,7 @@ export function Pricing({ services }: { services: Service[] }) {
   });
 
   return (
-    <section id="pricing" aria-label="Pricing" className="relative scroll-mt-24 py-28 md:py-40">
+    <section id="pricing" aria-label="Pricing" className="relative scroll-mt-24 py-20 md:py-32">
       <div className="container-x">
         <SectionHeading
           eyebrow="// 04 — Pricing"

@@ -73,7 +73,9 @@ html {
 }
 
 body {
-  background: var(--bg);
+  /* Transparent on purpose: html already paints --bg, and an opaque body would
+     cover the fixed, negative z-index ImmersiveBackground layer entirely. */
+  background: transparent;
   color: var(--fg);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "ss02";
@@ -175,6 +177,13 @@ html.has-custom-cursor * {
 
 html[data-preloaded] .preloader {
   display: none;
+}
+
+/* Without JavaScript the intro can never finish — never let it cover the page. */
+@media (scripting: none) {
+  .preloader {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

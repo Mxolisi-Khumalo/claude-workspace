@@ -99,6 +99,11 @@ export function Hero({ headline, subhead }: { headline: string; subhead: string 
             Taking on select projects
           </span>
           <span>Full-stack developer · Johannesburg, ZA</span>
+          <span className="hm-js-only hidden items-center gap-2 text-fg-subtle sm:inline-flex">
+            <span aria-hidden>·</span>
+            <LocalTime className="text-fg-muted" />
+            <span>SAST</span>
+          </span>
         </p>
 
         {/* On small screens this wrapper dissolves (display: contents) so the
@@ -137,16 +142,12 @@ export function Hero({ headline, subhead }: { headline: string; subhead: string 
         </div>
       </div>
 
-      <div className="hm-gate container-x relative flex items-end justify-between pb-6 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
+      {/* Bottom-left only: the floating concierge dock owns the bottom-right corner. */}
+      <div className="hm-gate container-x relative flex items-end pb-6 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
         <a href="#services" className="group flex items-center gap-3 transition-colors hover:text-fg">
           <span aria-hidden className="hm-scroll-line block h-10 w-px bg-line-strong" />
           Scroll to explore
         </a>
-        <p className="hidden items-center gap-2 sm:flex">
-          <span>Johannesburg</span>
-          <LocalTime className="text-fg-muted" />
-          <span>SAST</span>
-        </p>
       </div>
     </section>
   );

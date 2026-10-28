@@ -58,53 +58,59 @@ export function PricingGrid({ items }: { items: PricingCardData[] }) {
         </p>
       </div>
 
+      <p className="hm-swipe-hint mb-3 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-fg-subtle">
+        Swipe to compare all {items.length} services <span aria-hidden className="text-accent">→</span>
+      </p>
       <div ref={host} className="hm-glow-host grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((s) => (
-          <article
-            key={s.slug}
-            className="hm-glow flex flex-col rounded-[var(--radius-lg)] border border-line bg-bg-elevated/80 p-6 md:p-7"
-            style={{ "--glow": s.accent } as React.CSSProperties}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <h3 className="text-lg font-semibold leading-snug tracking-tight text-fg">
-                <Link href={`/services/${s.slug}`} className="transition-colors hover:text-accent">
-                  {s.title}
-                </Link>
-              </h3>
-              <span aria-hidden className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: s.accent, boxShadow: `0 0 14px ${s.accent}` }} />
-            </div>
-            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle">From</p>
-            <p className="display mt-1 text-[clamp(2.2rem,3.6vw,3rem)] leading-none tabular-nums">
-              {price(s.from)}
-            </p>
+        <div className="hm-swipe" role="list" aria-label="Service pricing">
+          {items.map((s) => (
+            <article
+              role="listitem"
+              key={s.slug}
+              className="hm-glow flex flex-col rounded-[var(--radius-lg)] border border-line bg-bg-elevated/80 p-6 md:p-7"
+              style={{ "--glow": s.accent } as React.CSSProperties}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="text-lg font-semibold leading-snug tracking-tight text-fg">
+                  <Link href={`/services/${s.slug}`} className="transition-colors hover:text-accent">
+                    {s.title}
+                  </Link>
+                </h3>
+                <span aria-hidden className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: s.accent, boxShadow: `0 0 14px ${s.accent}` }} />
+              </div>
+              <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle">From</p>
+              <p className="display hm-figures mt-1 text-[clamp(2.2rem,3.6vw,3rem)] leading-none">
+                {price(s.from)}
+              </p>
 
-            <ul className="mt-7 divide-y divide-line border-y border-line text-sm">
-              {s.packages.map((p) => (
-                <li key={p.name} className="flex items-baseline justify-between gap-4 py-3">
-                  <span className="min-w-0">
-                    <span className="font-medium text-fg">{p.name}</span>
-                    <span className="mt-0.5 block font-mono text-[11px] text-fg-subtle">
-                      {p.timeline}
-                      {p.purchasable && <span className="text-accent"> · pay online</span>}
+              <ul className="mt-7 divide-y divide-line border-y border-line text-sm">
+                {s.packages.map((p) => (
+                  <li key={p.name} className="flex items-baseline justify-between gap-4 py-3">
+                    <span className="min-w-0">
+                      <span className="font-medium text-fg">{p.name}</span>
+                      <span className="mt-0.5 block font-mono text-[11px] text-fg-subtle">
+                        {p.timeline}
+                        {p.purchasable && <span className="text-accent"> · pay online</span>}
+                      </span>
                     </span>
-                  </span>
-                  <span className="whitespace-nowrap tabular-nums text-fg-muted">{price(p)}</span>
-                </li>
-              ))}
-            </ul>
+                    <span className="whitespace-nowrap text-fg-muted">{price(p)}</span>
+                  </li>
+                ))}
+              </ul>
 
-            <div className="mt-auto pt-7">
-              <Button
-                variant="outline"
-                magnetic={false}
-                className="w-full"
-                onClick={() => openConcierge({ serviceSlug: s.slug, seedPrompt: `I'd like a quote for ${s.title}` })}
-              >
-                Get an exact quote <span aria-hidden>→</span>
-              </Button>
-            </div>
-          </article>
-        ))}
+              <div className="mt-auto pt-7">
+                <Button
+                  variant="outline"
+                  magnetic={false}
+                  className="w-full"
+                  onClick={() => openConcierge({ serviceSlug: s.slug, seedPrompt: `I'd like a quote for ${s.title}` })}
+                >
+                  Get an exact quote <span aria-hidden>→</span>
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
 
         <article className="hm-glow relative flex flex-col justify-between overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-line-strong bg-[radial-gradient(circle_at_85%_15%,rgb(126_231_135/0.14),transparent_55%)] p-6 md:p-7 lg:col-span-2">
           <div>

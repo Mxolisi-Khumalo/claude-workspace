@@ -21,6 +21,14 @@ import "@/components/pages/pages.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/**
+ * Every slug is prerendered from src/content via generateStaticParams, so the
+ * page awaits `params` at the top (real 404 status for unknown slugs) and a
+ * client navigation simply waits for the static payload instead of flashing
+ * a placeholder. This opts the segment out of instant-navigation validation.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
 }
@@ -170,7 +178,7 @@ export default async function ServicePage({ params }: Props) {
           align="split"
           intro={
             <>
-              <p>Every claim below links to the file that proves it, so you can check the work for yourself.</p>
+              <p>Every claim below links to its source — usually the exact file in a public repository — so you can check the work for yourself.</p>
               <div className="mt-5">
                 <EvidenceBadge strength={service.evidenceStrength} explain id={`strength-evidence-${service.slug}`} />
               </div>
@@ -205,12 +213,12 @@ export default async function ServicePage({ params }: Props) {
         <div className="container-x">
           <SectionHeading index={num()} label="Stack" title="Tools of the trade" />
         </div>
-        <div aria-hidden className="mt-14 border-y border-line py-6 md:py-8">
+        <div aria-hidden className="mt-14 border-y border-line bg-bg/40 py-6 md:py-8">
           <Marquee speed={36}>
             {service.tech.map((t) => (
               <span key={t} className="display mkp-ghost-muted flex items-center whitespace-nowrap px-6 text-[clamp(2.5rem,6vw,5.5rem)]">
                 {t}
-                <span className="ml-12 text-[0.4em] text-[var(--glow)]">✦</span>
+                <span className="ml-12 text-[0.4em] text-[var(--glow)] [-webkit-text-stroke:0]">✦</span>
               </span>
             ))}
           </Marquee>

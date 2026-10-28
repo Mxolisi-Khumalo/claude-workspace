@@ -34,8 +34,8 @@ function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: R
     let lx = look.current.x;
     const ly = look.current.y;
     if (mood === "thinking") lx = Math.sin(t * 3.2) * 0.9; // scanning side to side
-    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, side * 0.36 + lx * 0.13, 10, dt);
-    group.current.position.y = THREE.MathUtils.damp(group.current.position.y, 0.04 + ly * 0.1, 10, dt);
+    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, side * 0.34 + lx * 0.09, 10, dt);
+    group.current.position.y = THREE.MathUtils.damp(group.current.position.y, 0.03 + ly * 0.07, 10, dt);
 
     const isHappy = mood === "happy";
     pupil.current.visible = !isHappy;
@@ -54,12 +54,12 @@ function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: R
   return (
     <group ref={group} position={[side * 0.36, 0.04, 0.62]}>
       <mesh ref={pupil}>
-        <capsuleGeometry args={[0.085, 0.16, 8, 16]} />
-        <meshStandardMaterial ref={pupilMat} color={GREEN} emissive={GREEN} emissiveIntensity={2.4} toneMapped={false} />
+        <capsuleGeometry args={[0.075, 0.14, 8, 16]} />
+        <meshStandardMaterial ref={pupilMat} color={GREEN} emissive={GREEN} emissiveIntensity={1.15} toneMapped={false} />
       </mesh>
       <mesh ref={happy} visible={false}>
         <torusGeometry args={[0.11, 0.035, 12, 32, Math.PI]} />
-        <meshStandardMaterial ref={happyMat} color={GREEN} emissive={GREEN} emissiveIntensity={2.4} toneMapped={false} />
+        <meshStandardMaterial ref={happyMat} color={GREEN} emissive={GREEN} emissiveIntensity={1.15} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -115,7 +115,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
     const speed = mood === "thinking" ? 8 : 2;
     const tip = tipMat.current;
     if (tip) {
-      tip.emissiveIntensity = 2 + Math.sin(t * speed) * 1.2;
+      tip.emissiveIntensity = 1.2 + Math.sin(t * speed) * 0.6;
       const target = mood === "thinking" ? VIOLET : mood === "happy" ? AMBER : GREEN;
       tip.color.lerp(target, 1 - Math.exp(-6 * dt));
       tip.emissive.copy(tip.color);
@@ -127,7 +127,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
     <group ref={root}>
       {/* Shell */}
       <RoundedBox args={[1.6, 1.25, 1.2]} radius={0.38} smoothness={6}>
-        <meshPhysicalMaterial color="#1a1f29" metalness={0.35} roughness={0.28} clearcoat={1} clearcoatRoughness={0.15} />
+        <meshPhysicalMaterial color="#3a4456" metalness={0.25} roughness={0.32} clearcoat={1} clearcoatRoughness={0.12} />
       </RoundedBox>
       {/* Visor */}
       <RoundedBox args={[1.22, 0.72, 0.1]} radius={0.2} smoothness={6} position={[0, 0.02, 0.56]}>
@@ -162,7 +162,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
       </mesh>
       <mesh ref={antennaTip} position={[0, 0.98, 0]}>
         <sphereGeometry args={[0.08, 24, 24]} />
-        <meshStandardMaterial ref={tipMat} color={GREEN} emissive={GREEN} emissiveIntensity={3} toneMapped={false} />
+        <meshStandardMaterial ref={tipMat} color={GREEN} emissive={GREEN} emissiveIntensity={1.2} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -200,10 +200,10 @@ export default function BotHead({
       <Canvas
         frameloop={visible ? "always" : "never"}
         dpr={[1, 1.75]}
-        camera={{ position: [0, 0.15, 4.2], fov: 32 }}
+        camera={{ position: [0, 0.2, 5.4], fov: 30 }}
         gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
       >
-        <ambientLight intensity={0.35} />
+        <ambientLight intensity={0.6} />
         <directionalLight position={[3, 4, 5]} intensity={1.4} />
         <pointLight position={[-3, 1, 2]} color="#a371f7" intensity={18} />
         <pointLight position={[3, -1, 2]} color="#7ee787" intensity={10} />

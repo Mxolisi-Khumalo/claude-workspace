@@ -48,8 +48,8 @@ export default function ServicesIndexPage() {
               {profile.subhead}
             </p>
             <p data-reveal className="mkp-measure text-fg-muted lg:justify-self-end">
-              Every service page links to the code that proves it, with published starting prices and an honest rating of
-              how much evidence there is.
+              Every service page links to the work that proves it — usually the exact file in a public repository — with
+              published starting prices and an honest rating of how much evidence there is.
             </p>
           </Reveal>
         </div>

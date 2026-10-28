@@ -9,7 +9,7 @@ export function NextCase({ study }: { study: CaseStudy }) {
   const n = caseStudyNumber(study.slug);
   const cover = study.images[0];
   return (
-    <nav aria-label="Next case study" className="border-y border-line">
+    <nav aria-label="Next case study" className="border-t border-line">
       <Link
         href={`/work/${study.slug}`}
         data-cursor="view"

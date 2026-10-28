@@ -1,4 +1,5 @@
-import type { EvidenceStrength, Package, Service } from "@/content/types";
+import { startingPrice } from "@/content";
+import type { EvidenceStrength, Service } from "@/content/types";
 
 export type Currency = "ZAR" | "USD";
 
@@ -15,15 +16,16 @@ export function formatPrice(amount: number, currency: Currency) {
   return `$${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
-/** The cheapest package — used for "from" prices. */
-export function minPackage(service: Service): Package {
-  return service.packages.reduce((min, p) => (p.priceFromZar < min.priceFromZar ? p : min));
+/** The "from" price shown everywhere (cheapest one-off package; retainers excluded). */
+export function fromPrices(service: Service): { zar: number; usd: number } {
+  return startingPrice(service);
 }
 
+/** Labels match the badges on /services (see strengthCopy in components/pages/shared/helpers). */
 export const STRENGTH: Record<EvidenceStrength, { label: string; bars: number; color: string }> = {
   strong: { label: "Strong evidence", bars: 3, color: "var(--accent)" },
-  moderate: { label: "Solid evidence", bars: 2, color: "var(--sky)" },
-  emerging: { label: "Emerging", bars: 1, color: "var(--amber)" },
+  moderate: { label: "Moderate evidence", bars: 2, color: "var(--sky)" },
+  emerging: { label: "Emerging evidence", bars: 1, color: "var(--amber)" },
 };
 
 const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];

@@ -78,7 +78,7 @@ export function Process() {
   );
 
   return (
-    <section ref={root} id="process" aria-label="Process" className="hm-process relative scroll-mt-24 py-28 md:py-40">
+    <section ref={root} id="process" aria-label="Process" className="hm-process relative scroll-mt-24 py-20 md:py-32">
       <div className="container-x grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <p className="eyebrow mb-5">{"// 03 — Process"}</p>

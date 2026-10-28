@@ -31,7 +31,7 @@ const FAQS = [
 /** Accessible accordion on native <details>; height animates where supported. */
 export function Faq() {
   return (
-    <section id="faq" aria-label="Frequently asked questions" className="relative scroll-mt-24 py-28 md:py-40">
+    <section id="faq" aria-label="Frequently asked questions" className="relative scroll-mt-24 py-20 md:py-32">
       <div className="container-x grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <p className="eyebrow mb-5">{"// FAQ"}</p>

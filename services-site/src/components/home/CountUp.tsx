@@ -48,7 +48,8 @@ export function CountUp({ value, suffix, className }: { value: number; suffix?: 
         {value}
         {suffix}
       </span>
-      <span aria-hidden className="tabular-nums">
+      {/* No tabular-nums: Mona Sans draws a slashed zero in its tabular figures. */}
+      <span aria-hidden>
         <span ref={num}>{value}</span>
         {suffix && <span className="text-accent">{suffix}</span>}
       </span>
