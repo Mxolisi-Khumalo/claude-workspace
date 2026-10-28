@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
 import { ensurePointerTracking, pointer } from "@/hooks/usePointer";
+import { isMotionPaused } from "@/hooks/useMotionPaused";
 
 const VERT = `#version 300 es
 in vec2 aPos;
@@ -84,7 +85,9 @@ function compile(gl: WebGL2RenderingContext, type: number, src: string) {
 /**
  * Fixed, full-viewport WebGL backdrop. Renders at reduced resolution for
  * performance, pauses when the tab is hidden, and draws a single static frame
- * for reduced-motion users. Falls back to a CSS gradient without WebGL2.
+ * for reduced-motion users. The "Pause animations" switch freezes the drift
+ * (the spotlight still follows the pointer). Falls back to a CSS gradient
+ * without WebGL2.
  */
 export function ImmersiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -132,7 +135,8 @@ export function ImmersiveBackground() {
     let px = canvas.width * 0.5;
     let py = canvas.height * 0.6;
     let frame = 0;
-    const start = performance.now();
+    let last = performance.now();
+    let elapsed = 0;
 
     const draw = () => {
       // Ease the spotlight towards the pointer (flip Y for GL coordinates).
@@ -141,7 +145,10 @@ export function ImmersiveBackground() {
       px += (tx - px) * 0.06;
       py += (ty - py) * 0.06;
       const scrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      gl.uniform1f(uTime, reduced ? 12 : (performance.now() - start) / 1000);
+      const now = performance.now();
+      if (!isMotionPaused()) elapsed += (now - last) / 1000;
+      last = now;
+      gl.uniform1f(uTime, reduced ? 12 : elapsed);
       gl.uniform2f(uPointer, px, py);
       gl.uniform1f(uScroll, window.scrollY / scrollMax);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

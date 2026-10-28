@@ -48,6 +48,19 @@ export function closeTurn(conv: ConversationRecord, text: string, emit?: Emit) {
   if (last && last.role !== "assistant") messages.push({ role: "assistant", content: text });
 }
 
+/** The SDK's error for a streamed tool input that isn't valid JSON (the only failure worth re-issuing). */
+const isToolInputParseError = (err: unknown) =>
+  err instanceof Anthropic.AnthropicError &&
+  !(err instanceof Anthropic.APIError) &&
+  err.message.startsWith("Unable to parse tool parameter JSON");
+
+/** Canned close when the model ends a step with no visible output (an empty end_turn after tool results). */
+function emptyReplyText(lastTools: string[]) {
+  if (lastTools.some((t) => t.startsWith("propose_"))) return "\n\nPlease confirm in the card above when you're ready.";
+  if (lastTools.includes("request_contact_details")) return "\n\nPlease fill in the form above and I'll take it from there.";
+  return "\n\nWhat would you like to do next?";
+}
+
 export interface ClaudeTurnInput {
   conv: ConversationRecord;
   /** New user turn content (already appended by the caller is NOT expected). */
@@ -69,6 +82,9 @@ export async function runClaudeTurn({ conv, userContent, appContext, timezone, e
 
   const usage = (conv.usage ??= { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 });
   let jsonRetries = 0;
+  /** Text already streamed this turn: later steps start a new paragraph. */
+  let textSent = false;
+  let lastTools: string[] = [];
 
   for (let step = 0; step < MAX_STEPS; step++) {
     const stream = getClient().beta.messages.stream({
@@ -83,7 +99,13 @@ export async function runClaudeTurn({ conv, userContent, appContext, timezone, e
       messages,
     });
 
-    stream.on("text", (delta) => emit({ type: "text", delta }));
+    let stepHasText = false;
+    stream.on("text", (delta) => {
+      if (!delta) return;
+      if (!stepHasText && textSent) emit({ type: "text", delta: "\n\n" });
+      stepHasText = textSent = true;
+      emit({ type: "text", delta });
+    });
     stream.on("streamEvent", (event) => {
       if (event.type === "content_block_start" && event.content_block.type === "tool_use") {
         const name = event.content_block.name;
@@ -97,8 +119,8 @@ export async function runClaudeTurn({ conv, userContent, appContext, timezone, e
       jsonRetries = 0;
     } catch (err) {
       // With eager input streaming a tool input can arrive as unparseable
-      // JSON; only that case is retried. API errors propagate.
-      if (err instanceof Anthropic.APIError || jsonRetries++ >= 2) throw err;
+      // JSON; only that case is retried. Everything else propagates.
+      if (!isToolInputParseError(err) || jsonRetries++ >= 2) throw err;
       console.warn("[chat] unparseable tool input, re-issuing turn");
       step--;
       continue;
@@ -128,24 +150,32 @@ export async function runClaudeTurn({ conv, userContent, appContext, timezone, e
       return;
     }
 
+    // An empty reply (typically end_turn right after "End your turn now") would
+    // be rejected by the API on every later request once it isn't last.
+    if (toolUses.length === 0 && !content.some((b) => b.type === "text" && b.text.trim())) {
+      closeTurn(conv, emptyReplyText(lastTools), emit);
+      return;
+    }
+
     messages.push({ role: "assistant", content });
     if (toolUses.length === 0) return;
 
-    // Run tool calls concurrently; return all results in one user message.
-    const results = await Promise.all(
-      toolUses.map(async (tool) => {
-        const result = await runTool(tool.name, tool.input, { sessionId: conv.sessionId, timezone });
-        const label = isToolName(tool.name) ? TOOL_LABELS[tool.name] : "Working";
-        emit({ type: "tool", name: tool.name, label, status: result.isError ? "error" : "done" });
-        for (const card of result.cards) emit({ type: "card", card });
-        return {
-          type: "tool_result" as const,
-          tool_use_id: tool.id,
-          content: result.text,
-          ...(result.isError ? { is_error: true } : {}),
-        };
-      }),
-    );
+    // Run tool calls one at a time: several of them read-modify-write the
+    // same lead record. All results go back in one user message.
+    const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
+    for (const tool of toolUses) {
+      const result = await runTool(tool.name, tool.input, { sessionId: conv.sessionId, timezone });
+      const label = isToolName(tool.name) ? TOOL_LABELS[tool.name] : "Working";
+      emit({ type: "tool", name: tool.name, label, status: result.isError ? "error" : "done" });
+      for (const card of result.cards) emit({ type: "card", card });
+      results.push({
+        type: "tool_result",
+        tool_use_id: tool.id,
+        content: result.text,
+        ...(result.isError ? { is_error: true } : {}),
+      });
+    }
+    lastTools = toolUses.map((t) => t.name);
     messages.push({ role: "user", content: results });
   }
 

@@ -26,7 +26,7 @@ npm run dev
 Open <http://localhost:3000>. With **no environment variables set**, the whole site runs in **demo mode**:
 
 - The concierge uses a scripted engine that follows the same flow as the AI one.
-- Emails are captured at `/demo/outbox`. The verification code is shown in the chat.
+- Emails are captured at `/demo/outbox`. The verification code is shown in the chat (only while payments, calendar and email are all mocks).
 - Bookings use a mock calendar.
 - Payments go to a fake checkout at `/demo/checkout/<ref>`, where you can simulate success or failure.
 - Data is stored in `.data/store.json`.
@@ -39,11 +39,12 @@ To switch on the real AI concierge, set `ANTHROPIC_API_KEY`. See [`docs/INTEGRAT
 - **Fixed tool allowlist** (`src/lib/chat/server/tools.ts`). No tool can fetch URLs or run code. Every tool input is validated with Zod.
 - **Prices are never the model's.** `src/lib/concierge/pricing.ts` computes every amount from the published catalogue (`src/content/services.ts`). Invoices and payments are derived from stored quotes.
 - **Verify, then confirm.**
-  - The visitor proves they own their email with a 6-digit code.
+  - The visitor proves they own their email with a 6-digit code. The code is bound to that address, and codes are rate-limited per conversation, per address and site-wide.
   - Booking, emailing and invoicing are only *proposed* by the assistant. They run when the visitor presses the confirm button (`src/lib/concierge/actions.ts`).
 - **Fixed email templates.** The only variable parts are names, numbers, dates and links.
 - **Rate and cost limits:**
   - per-IP rate limit
+  - verification, booking and owner-handoff email limits kept in the store
   - 40-turn cap per conversation
   - 2 000-character messages
   - `max_tokens` cap per model call
@@ -82,4 +83,4 @@ Deploy to Vercel with **Root Directory = `services-site`**. Then set the environ
 - `SESSION_SECRET`
 - `OWNER_EMAIL`
 
-Add the provider keys you want live. Without `DATABASE_URL`, data on Vercel is kept in memory and resets, so add Neon Postgres for production.
+Add the provider keys you want live. Without `DATABASE_URL`, data on Vercel is kept in memory and resets, so add Neon Postgres for production. Set `ADMIN_PASSWORD` too: in production `/admin` and `/demo/outbox` return 404 without it. Switch on Resend before Cal.com or Paystack; with those live and email mocked, production refuses email verification (see [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)).

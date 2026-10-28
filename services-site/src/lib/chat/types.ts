@@ -112,7 +112,7 @@ export type ChatCard =
       charged?: { amount: number; currency: Currency; rate: number };
       reference: string;
       provider: string;
-      purpose: "deposit" | "full";
+      purpose: "deposit" | "balance" | "full";
     }
   | {
       kind: "invoice";

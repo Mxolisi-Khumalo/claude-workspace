@@ -44,17 +44,20 @@ export function ChatPanel({
   const lastCards = chat.messages.at(-1)?.cards.length ?? 0;
   useEffect(() => {
     const el = scroller.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    // An explicit "smooth" overrides the reduced-motion CSS reset, so choose here.
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduced ? "auto" : "smooth" });
   }, [chat.messages.length, lastText, lastCards, chat.tool?.label]);
 
-  // A CTA elsewhere asked the chat to send a prompt on open.
+  // A CTA elsewhere asked the chat to send a prompt on open. While a reply is
+  // still streaming the seed is left in place and sent once it finishes.
   useEffect(() => {
-    if (variant !== "dock" || !concierge.open || !concierge.seedPrompt || !chat.privacyAccepted) return;
+    if (variant !== "dock" || !concierge.open || !concierge.seedPrompt || !chat.privacyAccepted || chat.streaming) return;
     const seed = concierge.seedPrompt;
     consumeSeed();
     void sendChat({ message: seed, context });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [concierge.nonce, concierge.open, chat.privacyAccepted, variant]);
+  }, [concierge.nonce, concierge.open, chat.privacyAccepted, chat.streaming, variant]);
 
   const submit = () => {
     const text = draft.trim();
@@ -173,7 +176,16 @@ export function ChatPanel({
               Privacy notice
             </Link>
           </p>
-          <button type="button" onClick={acceptPrivacy} className="mt-3 w-full rounded-full bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)]">
+          <button
+            type="button"
+            data-autofocus
+            onClick={() => {
+              acceptPrivacy();
+              // The button unmounts; carry focus on to the composer that replaces it.
+              requestAnimationFrame(() => input.current?.focus());
+            }}
+            className="mt-3 w-full rounded-full bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)]"
+          >
             I understand — start chatting
           </button>
         </div>
@@ -209,7 +221,7 @@ export function ChatPanel({
                   submit();
                 }
               }}
-              className="max-h-36 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-sm text-fg outline-none placeholder:text-fg-subtle"
+              className="max-h-36 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-base text-fg outline-none placeholder:text-fg-subtle md:text-sm"
             />
             <button
               type="submit"

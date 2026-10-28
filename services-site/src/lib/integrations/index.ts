@@ -139,6 +139,21 @@ export function isMockEmail(): boolean {
   return getEmail().name === "mock";
 }
 
+/**
+ * True when nothing a visitor triggers reaches a real provider: DEMO_MODE, or
+ * payments, calendar and email all mocked. Only then may the chat reveal the
+ * verification code, since a live adapter would act on an unproven address.
+ */
+export function allSideEffectsMocked(): boolean {
+  if (isDemoMode()) return true;
+  try {
+    return getPayments().name === "mock" && getCalendar().name === "mock" && getEmail().name === "mock";
+  } catch (err) {
+    if (err instanceof IntegrationConfigError) return false;
+    throw err;
+  }
+}
+
 /** Which adapter is live for each integration (for /api/health and demo ribbons). Never throws. */
 export function integrationStatus(): IntegrationStatus {
   const nameOf = (get: () => { name: string }) => {

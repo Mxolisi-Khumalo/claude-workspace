@@ -21,7 +21,19 @@ interface HeadProps {
   reduced: boolean;
 }
 
-function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: React.RefObject<THREE.Vector2>; blink: React.RefObject<number> }) {
+function Eye({
+  side,
+  mood,
+  look,
+  blink,
+  reduced,
+}: {
+  side: -1 | 1;
+  mood: BotMood;
+  look: React.RefObject<THREE.Vector2>;
+  blink: React.RefObject<number>;
+  reduced: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
   const pupil = useRef<THREE.Mesh>(null);
   const happy = useRef<THREE.Mesh>(null);
@@ -33,7 +45,7 @@ function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: R
     const t = state.clock.elapsedTime;
     let lx = look.current.x;
     const ly = look.current.y;
-    if (mood === "thinking") lx = Math.sin(t * 3.2) * 0.9; // scanning side to side
+    if (mood === "thinking" && !reduced) lx = Math.sin(t * 3.2) * 0.9; // scanning side to side
     group.current.position.x = THREE.MathUtils.damp(group.current.position.x, side * 0.34 + lx * 0.09, 10, dt);
     group.current.position.y = THREE.MathUtils.damp(group.current.position.y, 0.03 + ly * 0.07, 10, dt);
 
@@ -101,7 +113,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
 
     g.rotation.y = look.current.x * 0.45;
     g.rotation.x = -look.current.y * 0.3;
-    g.rotation.z = mood === "happy" ? Math.sin(t * 9) * 0.06 : THREE.MathUtils.damp(g.rotation.z, 0, 4, dt);
+    g.rotation.z = mood === "happy" && !reduced ? Math.sin(t * 9) * 0.06 : THREE.MathUtils.damp(g.rotation.z, 0, 4, dt);
     g.position.y = reduced ? 0 : Math.sin(t * 1.4) * 0.05 + (mood === "happy" ? Math.abs(Math.sin(t * 6)) * 0.08 : 0);
 
     // Blinking.
@@ -111,11 +123,11 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
       if (bt >= 0.16) nextBlink.current = t + 2 + Math.random() * 3.5;
     }
 
-    // Antenna pulses faster while thinking.
+    // Antenna pulses faster while thinking (a steady glow for reduced motion).
     const speed = mood === "thinking" ? 8 : 2;
     const tip = tipMat.current;
     if (tip) {
-      tip.emissiveIntensity = 1.2 + Math.sin(t * speed) * 0.6;
+      tip.emissiveIntensity = reduced ? 1.2 : 1.2 + Math.sin(t * speed) * 0.6;
       const target = mood === "thinking" ? VIOLET : mood === "happy" ? AMBER : GREEN;
       tip.color.lerp(target, 1 - Math.exp(-6 * dt));
       tip.emissive.copy(tip.color);
@@ -133,8 +145,8 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
       <RoundedBox args={[1.22, 0.72, 0.1]} radius={0.2} smoothness={6} position={[0, 0.02, 0.56]}>
         <meshPhysicalMaterial color="#05070a" metalness={0.1} roughness={0.05} clearcoat={1} />
       </RoundedBox>
-      <Eye side={-1} mood={mood} look={look} blink={blink} />
-      <Eye side={1} mood={mood} look={look} blink={blink} />
+      <Eye side={-1} mood={mood} look={look} blink={blink} reduced={reduced} />
+      <Eye side={1} mood={mood} look={look} blink={blink} reduced={reduced} />
       {/* Cheeks */}
       {[-1, 1].map((s) => (
         <mesh key={s} position={[s * 0.52, -0.2, 0.6]}>

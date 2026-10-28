@@ -3,12 +3,14 @@
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
+import { isMotionPaused } from "@/hooks/useMotionPaused";
 
 gsap.registerPlugin(useGSAP);
 
 /**
  * Infinite marquee whose speed and direction respond to scroll velocity.
- * Hovering slows it down. Content is duplicated for a seamless loop.
+ * Hovering slows it down; the site-wide "Pause animations" switch stops it.
+ * Content is duplicated for a seamless loop.
  */
 export function Marquee({
   children,
@@ -38,6 +40,10 @@ export function Marquee({
         const y = window.scrollY;
         const v = y - lastY;
         lastY = y;
+        if (isMotionPaused()) {
+          boost = 0;
+          return;
+        }
         if (Math.abs(v) > 0.5) dir = v > 0 ? -1 : 1;
         boost += (Math.min(Math.abs(v) * 0.6, 14) - boost) * 0.1;
         x += dir * (speed * factor * (dt / 1000) + boost * factor);

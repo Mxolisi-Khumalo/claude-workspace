@@ -17,7 +17,7 @@
 
   --fg: #f0f3f6;
   --fg-muted: #9aa4b2;
-  --fg-subtle: #5f6b7a;
+  --fg-subtle: #848e9b; /* ≥ 5:1 on every surface — it carries small informative labels */
 
   --accent: #7ee787; /* neon green — primary */
   --accent-ink: #04130a;
@@ -184,6 +184,24 @@ html[data-preloaded] .preloader {
   .preloader {
     display: none;
   }
+}
+
+/*
+ * "Pause animations" (footer switch, see useMotionPaused): stops looping
+ * decoration for visitors who haven't set reduced motion at the OS level.
+ * Marquees, the hero rotator and the WebGL scenes check the same attribute.
+ */
+html[data-motion="paused"] .animate-ping,
+html[data-motion="paused"] .hm-caret,
+html[data-motion="paused"] .mkp-caret {
+  animation: none;
+}
+html[data-motion="paused"] .hm-float,
+html[data-motion="paused"] .hm-scroll-line::after,
+html[data-motion="paused"] .mkp-art-blob,
+html[data-motion="paused"] .mkp-glitch::before,
+html[data-motion="paused"] .mkp-glitch::after {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {

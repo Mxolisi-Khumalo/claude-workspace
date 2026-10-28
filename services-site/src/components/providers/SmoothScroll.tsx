@@ -1,27 +1,24 @@
 "use client";
 
-import { ReactLenis, type LenisRef } from "lenis/react";
+import { ReactLenis, useLenis } from "lenis/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Lenis smooth scrolling driven by GSAP's ticker so ScrollTrigger animations
- * and the smoothed scroll position stay in lock-step. Disabled entirely for
- * visitors who prefer reduced motion.
+ * Drives the root Lenis instance from GSAP's ticker so ScrollTrigger
+ * animations and the smoothed scroll position stay in lock-step. ReactLenis
+ * creates its instance in an effect, so this waits for `useLenis()` to
+ * deliver it rather than reading a ref that is still empty on mount.
  */
-export function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const lenisRef = useRef<LenisRef>(null);
-  const reduced = usePrefersReducedMotion();
+function GsapLenisBridge() {
+  const lenis = useLenis();
 
   useEffect(() => {
-    if (reduced) return;
-    const lenis = lenisRef.current?.lenis;
     if (!lenis) return;
-
     const raf = (time: number) => lenis.raf(time * 1000);
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add(raf);
@@ -29,18 +26,31 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     return () => {
       lenis.off("scroll", ScrollTrigger.update);
       gsap.ticker.remove(raf);
+      gsap.ticker.lagSmoothing(500, 33);
     };
-  }, [reduced]);
+  }, [lenis]);
 
-  if (reduced) return <>{children}</>;
+  return null;
+}
+
+/**
+ * Lenis smooth scrolling for the whole page. Disabled entirely (native
+ * scroll) for visitors who prefer reduced motion. Lenis is mounted as a
+ * sibling rather than a wrapper so `children` keep the same tree position
+ * when the preference resolves after hydration or changes mid-session —
+ * otherwise React would remount the entire header, page and footer.
+ */
+export function SmoothScroll({ children }: { children: React.ReactNode }) {
+  const reduced = usePrefersReducedMotion();
 
   return (
-    <ReactLenis
-      root
-      ref={lenisRef}
-      options={{ autoRaf: false, lerp: 0.1, wheelMultiplier: 1, anchors: { offset: -80 } }}
-    >
+    <>
+      {!reduced && (
+        <ReactLenis root options={{ autoRaf: false, lerp: 0.1, wheelMultiplier: 1, anchors: { offset: -80 } }}>
+          <GsapLenisBridge />
+        </ReactLenis>
+      )}
       {children}
-    </ReactLenis>
+    </>
   );
 }

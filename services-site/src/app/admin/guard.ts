@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ADMIN_COOKIE, adminMode, hasAdminAccess } from "./auth";
+import { ADMIN_COOKIE, adminMode, hasAdminAccess, outboxIsPublic } from "./auth";
 
 /**
  * In-render admin checks. The proxy already gates /admin, but every page,
@@ -24,10 +24,11 @@ export async function isAdminRequest(): Promise<boolean> {
 }
 
 /**
- * The demo outbox can hold real visitors' names and emails. When a production
- * deployment has ADMIN_PASSWORD set, only the owner may read it.
+ * The demo outbox holds every visitor's names, emails and signed document
+ * links, so in production it fails closed like /admin: owner sign-in with
+ * ADMIN_PASSWORD set, 404 without it.
  */
 export async function requireOutboxAccess(): Promise<void> {
-  if (process.env.NODE_ENV !== "production" || adminMode() !== "password") return;
+  if (outboxIsPublic()) return;
   await requireAdmin("/demo/outbox");
 }

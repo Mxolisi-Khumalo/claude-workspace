@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { profile } from "@/content";
 import { mockPaymentsActive } from "@/app/api/webhooks/payments";
 import { formatMoney } from "@/lib/concierge/pricing";
-import { amountDue } from "@/lib/documents";
+import { amountDue, purposeLabel } from "@/lib/documents";
 import { getStore } from "@/lib/integrations";
 import { simulatePayment } from "../actions";
 import { returnPath } from "../return-path";
@@ -41,7 +41,7 @@ export default async function DemoCheckoutPage({ params, searchParams }: PagePro
   const failed = query.result === "failed";
   const back = typeof query.return === "string" ? returnPath(query.return, ref) : undefined;
   const charged = invoice.payment?.charged;
-  const due = charged ?? { amount: amountDue(invoice.total, invoice.currency), currency: invoice.currency };
+  const due = charged ?? invoice.payment?.requested ?? { amount: amountDue(invoice.total, invoice.currency), currency: invoice.currency };
   const paid = invoice.status === "paid";
 
   return (
@@ -56,7 +56,7 @@ export default async function DemoCheckoutPage({ params, searchParams }: PagePro
             <p className="eyebrow">Pay {profile.name}</p>
             <p className="display mt-4 text-5xl">{formatMoney(due.amount, due.currency)}</p>
             <p className="mt-3 font-mono text-sm text-fg-muted">
-              {invoice.number} · {invoice.purpose === "deposit" ? "Project deposit" : "Payment in full"}
+              {invoice.number} · {purposeLabel(invoice.purpose)}
             </p>
             {charged && (
               <p className="mt-1 text-xs text-fg-subtle">

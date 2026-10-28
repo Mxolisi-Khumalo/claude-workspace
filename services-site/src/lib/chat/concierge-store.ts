@@ -18,6 +18,8 @@ interface ConciergeState {
 
 let state: ConciergeState = { open: false, nonce: 0 };
 const listeners = new Set<() => void>();
+/** The control that opened the chat, so focus can return to it on close. */
+let opener: HTMLElement | null = null;
 
 function set(next: Partial<ConciergeState>) {
   state = { ...state, ...next };
@@ -25,11 +27,24 @@ function set(next: Partial<ConciergeState>) {
 }
 
 export function openConcierge(opts: { serviceSlug?: string; seedPrompt?: string } = {}) {
+  // Read focus now: by the time the dock's effects run, the launcher (a
+  // common opener) has already been made inert and lost focus.
+  if (!state.open) {
+    const active = typeof document !== "undefined" ? document.activeElement : null;
+    opener = active instanceof HTMLElement && active !== document.body ? active : null;
+  }
   set({ open: true, serviceSlug: opts.serviceSlug, seedPrompt: opts.seedPrompt, nonce: state.nonce + 1 });
 }
 
 export function closeConcierge() {
   set({ open: false });
+}
+
+/** The element that had focus when the chat was opened (read once, on close). */
+export function takeOpener(): HTMLElement | null {
+  const el = opener;
+  opener = null;
+  return el;
 }
 
 /** Clear the seed once the chat UI has consumed it. */

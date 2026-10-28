@@ -87,7 +87,8 @@ export const vatStatement = () =>
 
 export const invoiceTitle = () => (business().vatRegistered ? "Tax Invoice" : "Invoice");
 
-export const purposeLabel = (p: InvoiceRecord["purpose"]) => (p === "deposit" ? "Deposit" : "Payment in full");
+export const purposeLabel = (p: InvoiceRecord["purpose"]) =>
+  p === "deposit" ? "Deposit" : p === "balance" ? "Balance due" : "Payment in full";
 
 export function chargedNote(invoice: InvoiceRecord): string | null {
   const c = invoice.payment?.charged;

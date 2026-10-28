@@ -50,6 +50,7 @@ BEGIN
   CREATE TABLE IF NOT EXISTS bookings (
     id text PRIMARY KEY, lead_id text NOT NULL, start_at timestamptz NOT NULL, doc jsonb NOT NULL);
   CREATE INDEX IF NOT EXISTS bookings_lead_id_idx ON bookings (lead_id);
+  CREATE INDEX IF NOT EXISTS bookings_provider_booking_id_idx ON bookings ((doc->>'providerBookingId'));
 
   CREATE TABLE IF NOT EXISTS pending_actions (
     id text PRIMARY KEY, session_id text NOT NULL, created_at timestamptz NOT NULL, doc jsonb NOT NULL);
@@ -63,6 +64,8 @@ BEGIN
     PRIMARY KEY (provider, event_id));
 
   CREATE TABLE IF NOT EXISTS counters (name text PRIMARY KEY, value integer NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS rate_counters (key text PRIMARY KEY, count integer NOT NULL, reset_at timestamptz NOT NULL);
 END $$`;
 
 /** jsonb rejects U+0000, so NUL characters are dropped from string values. */
@@ -71,6 +74,8 @@ const json = (v: unknown) =>
 const docs = <T>(rows: Row[]) => rows.map((r) => r.doc as T);
 const first = <T>(rows: Row[]) => (rows[0]?.doc as T | undefined) ?? null;
 const limitOf = (n: number | undefined, fallback: number) => Math.max(1, Math.min(Math.floor(n ?? fallback), 1000));
+/** Unscoped lists return the newest rows (oldest first, like the memory store) up to this cap. */
+const UNSCOPED_LIMIT = 1000;
 
 /** Neon serverless Postgres (HTTP driver). Parameterised queries only. */
 export class PostgresStore implements AppStore {
@@ -157,7 +162,10 @@ export class PostgresStore implements AppStore {
     return docs<QuoteRecord>(
       leadId
         ? await this.q(`SELECT doc FROM quotes WHERE lead_id = $1 ORDER BY created_at`, [leadId])
-        : await this.q(`SELECT doc FROM quotes ORDER BY created_at LIMIT $1`, [1000]),
+        : await this.q(
+            `SELECT doc FROM (SELECT doc, created_at FROM quotes ORDER BY created_at DESC LIMIT $1) newest ORDER BY created_at`,
+            [UNSCOPED_LIMIT],
+          ),
     );
   }
 
@@ -186,7 +194,10 @@ export class PostgresStore implements AppStore {
     return docs<InvoiceRecord>(
       leadId
         ? await this.q(`SELECT doc FROM invoices WHERE lead_id = $1 ORDER BY created_at`, [leadId])
-        : await this.q(`SELECT doc FROM invoices ORDER BY created_at LIMIT $1`, [1000]),
+        : await this.q(
+            `SELECT doc FROM (SELECT doc, created_at FROM invoices ORDER BY created_at DESC LIMIT $1) newest ORDER BY created_at`,
+            [UNSCOPED_LIMIT],
+          ),
     );
   }
 
@@ -202,7 +213,17 @@ export class PostgresStore implements AppStore {
     return docs<BookingRecord>(
       leadId
         ? await this.q(`SELECT doc FROM bookings WHERE lead_id = $1 ORDER BY start_at`, [leadId])
-        : await this.q(`SELECT doc FROM bookings ORDER BY start_at LIMIT $1`, [1000]),
+        : await this.q(
+            `SELECT doc FROM (SELECT doc, start_at FROM bookings ORDER BY start_at DESC LIMIT $1) newest ORDER BY start_at`,
+            [UNSCOPED_LIMIT],
+          ),
+    );
+  }
+  async getBookingByProviderId(providerBookingId: string) {
+    return first<BookingRecord>(
+      await this.q(`SELECT doc FROM bookings WHERE doc->>'providerBookingId' = $1 ORDER BY start_at DESC LIMIT 1`, [
+        providerBookingId,
+      ]),
     );
   }
 
@@ -251,5 +272,20 @@ export class PostgresStore implements AppStore {
       [sequenceKey(name)],
     );
     return Number(rows[0]?.value);
+  }
+
+  async incrementCounter(key: string, windowSeconds: number) {
+    const rows = await this.q(
+      `INSERT INTO rate_counters (key, count, reset_at) VALUES ($1, 1, now() + $2::int * interval '1 second')
+       ON CONFLICT (key) DO UPDATE SET
+         count = CASE WHEN rate_counters.reset_at <= now() THEN 1 ELSE rate_counters.count + 1 END,
+         reset_at = CASE WHEN rate_counters.reset_at <= now() THEN EXCLUDED.reset_at ELSE rate_counters.reset_at END
+       RETURNING count`,
+      [key, windowSeconds],
+    );
+    const count = Number(rows[0]?.count);
+    // A new window just opened: a cheap moment to drop windows that have ended.
+    if (count === 1) await this.q(`DELETE FROM rate_counters WHERE reset_at <= now()`);
+    return count;
   }
 }

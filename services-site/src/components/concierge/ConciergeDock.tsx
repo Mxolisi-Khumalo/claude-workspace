@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { clsx } from "clsx";
 import { useChat } from "@/lib/chat/client";
-import { closeConcierge, openConcierge, useConcierge } from "@/lib/chat/concierge-store";
+import { closeConcierge, openConcierge, takeOpener, useConcierge } from "@/lib/chat/concierge-store";
 import { ChatPanel } from "./ChatPanel";
 import { MiniBot } from "./MiniBot";
 
@@ -11,6 +11,8 @@ import { MiniBot } from "./MiniBot";
  * Site-wide floating concierge: a launcher bubble plus a slide-over chat
  * panel. The launcher steps aside while the home page's inline concierge
  * section is on screen, so there is only ever one obvious place to chat.
+ * While open the panel is modal: the rest of the site (`#site-shell` in the
+ * root layout) is inert, and closing returns focus to whatever opened it.
  */
 export function ConciergeDock() {
   const { open } = useConcierge();
@@ -21,14 +23,28 @@ export function ConciergeDock() {
 
   useEffect(() => {
     if (!open) return;
+    const dialog = panel.current;
+    const fallback = launcher.current;
+    const shell = document.getElementById("site-shell");
+    if (shell) shell.inert = true;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeConcierge();
     };
     window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => panel.current?.querySelector<HTMLElement>("textarea, button")?.focus(), 350);
+    // Focus where the visitor acts next: the composer, or the privacy
+    // notice's accept button while that gate shows — never the header's
+    // "New" button, which would wipe the conversation on Enter or Space.
+    const t = setTimeout(() => {
+      (dialog?.querySelector<HTMLElement>("#chat-input-dock, [data-autofocus]") ?? dialog?.querySelector<HTMLElement>("[aria-label='Close chat']"))?.focus();
+    }, 350);
     return () => {
       window.removeEventListener("keydown", onKey);
       clearTimeout(t);
+      if (shell) shell.inert = false;
+      const opener = takeOpener();
+      if (opener?.isConnected && !dialog?.contains(opener)) opener.focus();
+      // The opener may be gone or hidden (e.g. the closed mobile menu).
+      if (document.activeElement !== opener) fallback?.focus();
     };
   }, [open]);
 
@@ -40,6 +56,7 @@ export function ConciergeDock() {
         onClick={() => (open ? closeConcierge() : openConcierge())}
         aria-expanded={open}
         aria-controls="concierge-panel"
+        inert={hideLauncher || open}
         data-cursor="view"
         data-cursor-label="Chat"
         className={clsx(

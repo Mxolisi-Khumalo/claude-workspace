@@ -265,15 +265,18 @@ export function bookingEmailToClient(
   });
 }
 
-/** 6-digit verification code email (fixed template; no free text). */
-export function verificationEmail(code: string, lead: Lead): Email {
+/**
+ * 6-digit verification code email. It goes to an address nobody has proven
+ * yet, so it carries no visitor-supplied text at all (not even the name).
+ */
+export function verificationEmail(code: string): Email {
   const digits = code.replace(/\D/g, "").slice(0, 6);
   return render({
     audience: "client",
     subject: `Your ${WORDMARK} verification code`,
     preheader: "Use this code to verify your email. It expires in 10 minutes.",
     heading: "Verify your email",
-    intro: [`Hi ${firstName(lead)},`, "Enter this 6-digit code in the chat to confirm your email address:"],
+    intro: ["Hi,", "Enter this 6-digit code in the chat to confirm your email address:"],
     code: digits,
     outro: ["The code is valid for 10 minutes.", "If you didn't request this, ignore it — nothing happens without the code."],
   });

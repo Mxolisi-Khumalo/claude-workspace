@@ -1,7 +1,8 @@
 /**
  * Turns stored Anthropic message params into a readable transcript: visible
  * text plus tool names. Thinking blocks and tool results are skipped; the
- * engine's injected `[app context]` / `[app event]` text is kept separately.
+ * engine's injected `[app context]` / `[app event]` text (a `system` message
+ * right after each visitor turn) is kept separately as that turn's context.
  */
 
 export interface TranscriptEntry {
@@ -20,12 +21,24 @@ export function toTranscript(messages: unknown[]): TranscriptEntry[] {
   for (const raw of messages) {
     if (!raw || typeof raw !== "object") continue;
     const { role, content } = raw as { role?: unknown; content?: unknown };
+    const blocks: Block[] = typeof content === "string" ? [{ type: "text", text: content }] : Array.isArray(content) ? content : [];
+
+    if (role === "system") {
+      const text = blocks
+        .filter((b) => b && b.type === "text" && typeof b.text === "string")
+        .map((b) => String(b.text).trim())
+        .join("\n\n");
+      if (!text) continue;
+      const prev = entries.at(-1);
+      if (prev?.role === "user") prev.context = [prev.context, text].filter(Boolean).join("\n\n");
+      else entries.push({ role: "user", text: "", context: text, tools: [] });
+      continue;
+    }
     if (role !== "user" && role !== "assistant") continue;
 
     const text: string[] = [];
     const context: string[] = [];
     const tools: string[] = [];
-    const blocks: Block[] = typeof content === "string" ? [{ type: "text", text: content }] : Array.isArray(content) ? content : [];
 
     for (const block of blocks) {
       if (!block || typeof block !== "object") continue;

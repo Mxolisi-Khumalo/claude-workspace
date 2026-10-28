@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { profile, services } from "@/content";
 import { openConcierge } from "@/lib/chat/concierge-store";
+import { setMotionPaused, useMotionPaused } from "@/hooks/useMotionPaused";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { RevealText } from "@/components/ui/RevealText";
 
@@ -12,6 +13,31 @@ const noop = () => () => {};
 /** A static server value keeps prerendering deterministic; the browser shows the real year. */
 function useYear() {
   return useSyncExternalStore(noop, () => new Date().getFullYear(), () => 2026);
+}
+
+/** Site-wide pause for marquees, the hero rotator and other looping motion. */
+function MotionToggle() {
+  const paused = useMotionPaused();
+  return (
+    <button
+      type="button"
+      onClick={() => setMotionPaused(!paused)}
+      className="inline-flex items-center gap-2 transition-colors hover:text-fg"
+    >
+      {/* Drawn with CSS: the ▶ glyph renders as an emoji on some phones. */}
+      <span aria-hidden className="flex h-2.5 w-2.5 justify-center gap-[3px] text-accent">
+        {paused ? (
+          <span className="w-full bg-current [clip-path:polygon(10%_0,100%_50%,10%_100%)]" />
+        ) : (
+          <>
+            <span className="w-[3px] bg-current" />
+            <span className="w-[3px] bg-current" />
+          </>
+        )}
+      </span>
+      {paused ? "Play animations" : "Pause animations"}
+    </button>
+  );
 }
 
 export function Footer() {
@@ -84,9 +110,12 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="container-x flex flex-col justify-between gap-4 border-t border-line py-8 font-mono text-xs text-fg-subtle sm:flex-row">
+      <div className="container-x flex flex-col justify-between gap-4 border-t border-line py-8 font-mono text-xs text-fg-subtle sm:flex-row sm:items-center">
         <span>© {year} {profile.name}. All rights reserved.</span>
-        <span>Built with Next.js, WebGL &amp; a very curious robot.</span>
+        <span className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+          <MotionToggle />
+          <span>Built with Next.js, WebGL &amp; a very curious robot.</span>
+        </span>
       </div>
 
       <div aria-hidden className="pointer-events-none select-none overflow-hidden">

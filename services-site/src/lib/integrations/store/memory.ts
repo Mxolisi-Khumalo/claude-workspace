@@ -24,6 +24,8 @@ export interface StoreData {
   /** `${provider}\u0000${eventId}` -> first-seen ISO time. */
   webhookEvents: Record<string, string>;
   counters: Record<string, number>;
+  /** Throttle windows from incrementCounter: key -> count and window end (epoch ms). */
+  rateCounters: Record<string, { count: number; resetAt: number }>;
 }
 
 export const emptyStoreData = (): StoreData => ({
@@ -36,6 +38,7 @@ export const emptyStoreData = (): StoreData => ({
   outbox: [],
   webhookEvents: {},
   counters: {},
+  rateCounters: {},
 });
 
 const clone = <T>(v: T): T => (v === undefined ? v : structuredClone(v));
@@ -139,6 +142,14 @@ export class MemoryStore implements AppStore {
         .sort((a, b) => a.start.localeCompare(b.start)),
     );
   }
+  getBookingByProviderId(providerBookingId: string) {
+    return this.read(
+      (d) =>
+        Object.values(d.bookings)
+          .filter((b) => b.providerBookingId === providerBookingId)
+          .sort((a, b) => b.start.localeCompare(a.start))[0] ?? null,
+    );
+  }
 
   savePendingAction(a: PendingAction) {
     return this.write((d) => (d.actions[a.id] = clone(a)));
@@ -173,6 +184,20 @@ export class MemoryStore implements AppStore {
       const key = sequenceKey(name);
       d.counters[key] = (d.counters[key] ?? 0) + 1;
       return d.counters[key];
+    });
+  }
+
+  incrementCounter(key: string, windowSeconds: number) {
+    return this.write((d) => {
+      const now = Date.now();
+      const current = d.rateCounters[key];
+      const entry =
+        current && current.resetAt > now ? { ...current, count: current.count + 1 } : { count: 1, resetAt: now + windowSeconds * 1000 };
+      d.rateCounters[key] = entry;
+      if (entry.count === 1) {
+        for (const [k, v] of Object.entries(d.rateCounters)) if (v.resetAt <= now) delete d.rateCounters[k];
+      }
+      return entry.count;
     });
   }
 }

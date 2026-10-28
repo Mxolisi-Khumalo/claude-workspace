@@ -169,6 +169,13 @@
   transform: none;
 }
 
+/* Escape dismisses it (see DismissibleTip) until hover and focus have both left. */
+.mkp-tip[data-dismissed] .mkp-tip-panel {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+}
+
 /* ---------- FAQ accordion (native <details>) ---------- */
 
 .mkp-faq {

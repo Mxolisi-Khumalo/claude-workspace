@@ -49,13 +49,15 @@ export async function POST(req: Request) {
 
   try {
     const store = getStore();
-    const fresh = await store.recordWebhookEvent("calcom", `${trigger}:${p.uid ?? ""}:${p.rescheduleUid ?? ""}:${body.createdAt ?? ""}`);
-    if (!fresh) return Response.json({ received: true, outcome: "duplicate" });
+    // Claimed only after the update is saved, so a failed attempt is retried in full.
+    // Re-applying a delivery that did succeed is harmless: the update is idempotent.
+    const claim = () =>
+      store.recordWebhookEvent("calcom", `${trigger}:${p.uid ?? ""}:${p.rescheduleUid ?? ""}:${body.createdAt ?? ""}`);
 
     // A reschedule creates a new Cal.com booking; the original uid arrives as `rescheduleUid`.
-    const ids = new Set([p.uid, p.rescheduleUid, p.bookingId].filter((v) => v !== undefined && v !== "").map(String));
-    const booking = (await store.listBookings()).find((b) => b.providerBookingId && ids.has(b.providerBookingId));
-    if (!booking) return Response.json({ received: true, outcome: "unmatched" });
+    const ids = [...new Set([p.uid, p.rescheduleUid, p.bookingId].filter((v) => v !== undefined && v !== "").map(String))];
+    const booking = (await Promise.all(ids.map((id) => store.getBookingByProviderId(id)))).find((b) => b !== null);
+    if (!booking) return Response.json({ received: true, outcome: (await claim()) ? "unmatched" : "duplicate" });
 
     await store.saveBooking(
       trigger === "BOOKING_CANCELLED"
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
             meetingUrl: p.metadata?.videoCallUrl ?? booking.meetingUrl,
           },
     );
-    return Response.json({ received: true, outcome: "processed" });
+    return Response.json({ received: true, outcome: (await claim()) ? "processed" : "duplicate" });
   } catch (err) {
     console.error("[webhooks] calcom processing failed", err);
     return Response.json({ error: "Processing failed" }, { status: 500 });

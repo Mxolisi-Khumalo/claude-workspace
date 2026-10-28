@@ -13,12 +13,11 @@ import {
   proposeQuoteEmail,
   recommendServices,
   requestContact,
+  requestHandoff,
   updateBrief,
   type ActionResult,
 } from "@/lib/concierge/actions";
 import { QuoteError } from "@/lib/concierge/pricing";
-import { getEmail } from "@/lib/integrations";
-import { ownerNotificationEmail } from "@/lib/documents";
 
 /**
  * The concierge's fixed tool allowlist. No tool fetches URLs, runs code or
@@ -62,7 +61,7 @@ const schemas = {
     agenda: z.string().max(500).optional(),
   }),
   propose_quote_email: z.object({ quote_id: z.string().max(64) }),
-  propose_payment: z.object({ quote_id: z.string().max(64), purpose: z.enum(["deposit", "full"]) }),
+  propose_payment: z.object({ quote_id: z.string().max(64), purpose: z.enum(["deposit", "balance", "full"]) }),
   show_quick_replies: z.object({ options: z.array(z.string().min(1).max(60)).min(2).max(4) }),
   handoff_to_human: z.object({ reason: z.string().max(500) }),
 };
@@ -95,11 +94,11 @@ const DESCRIPTIONS: Record<ToolName, string> = {
   get_available_slots:
     "Show open 30-minute discovery-call slots from the developer's calendar. Never claim availability without calling this.",
   propose_booking:
-    "Propose booking the slot the visitor picked (use the exact ISO start time from the slots card). Shows a confirmation card; the booking only happens when the visitor confirms. Requires a verified email.",
+    "Propose booking the slot the visitor picked, using the exact ISO start time listed by get_available_slots (other times are refused). Shows a confirmation card; the booking only happens when the visitor confirms. Requires a verified email.",
   propose_quote_email:
     "Propose emailing a quote (by quote id) as a PDF to the visitor's verified email. Shows a confirmation card.",
   propose_payment:
-    "Propose issuing an invoice with a secure payment link for a quote: the deposit (default) or the full amount. The server computes the amount. Shows a confirmation card.",
+    "Propose issuing an invoice with a secure payment link for a quote. Purpose: 'deposit' (default) or 'full' only while nothing has been invoiced on the quote; once anything has, 'balance' (the total less earlier invoices). The server computes the amount and refuses anything already covered. Shows a confirmation card.",
   show_quick_replies:
     "Offer 2-4 short tappable reply suggestions under your message (e.g. answer options to your question). Use sparingly.",
   handoff_to_human:
@@ -112,23 +111,30 @@ const INPUT_SCHEMAS: Record<ToolName, Anthropic.Beta.BetaTool.InputSchema> = {
     type: "object",
     properties: {
       slugs: { type: "array", items: { type: "string", enum: SLUGS }, minItems: 1, maxItems: 4 },
-      reason: { type: "string", description: "One sentence on why these fit." },
+      reason: { type: "string", maxLength: 400, description: "One sentence on why these fit." },
     },
     required: ["slugs", "reason"],
   },
   save_brief: {
     type: "object",
     properties: {
-      summary: { type: "string", description: "Full current project summary, written for the developer." },
-      service_slugs: { type: "array", items: { type: "string", enum: SLUGS } },
-      budget: { type: "string" },
-      timeline: { type: "string" },
+      summary: {
+        type: "string",
+        minLength: 1,
+        maxLength: 2000,
+        description: "Full current project summary, written for the developer (max 2000 characters).",
+      },
+      service_slugs: { type: "array", items: { type: "string", enum: SLUGS }, maxItems: 6 },
+      budget: { type: "string", maxLength: 200 },
+      timeline: { type: "string", maxLength: 200 },
     },
     required: ["summary", "service_slugs"],
   },
   request_contact_details: {
     type: "object",
-    properties: { reason: { type: "string", description: "Shown on the form, e.g. 'so I can send your quote'." } },
+    properties: {
+      reason: { type: "string", maxLength: 200, description: "Shown on the form, e.g. 'so I can send your quote'." },
+    },
     required: ["reason"],
   },
   create_quote: {
@@ -140,7 +146,11 @@ const INPUT_SCHEMAS: Record<ToolName, Anthropic.Beta.BetaTool.InputSchema> = {
           type: "object",
           properties: {
             service_slug: { type: "string", enum: SLUGS },
-            package_name: { type: "string", description: "Exact package name from the catalogue; omit for the entry package." },
+            package_name: {
+              type: "string",
+              maxLength: 80,
+              description: "Exact package name from the catalogue; omit for the entry package.",
+            },
           },
           required: ["service_slug"],
         },
@@ -153,7 +163,7 @@ const INPUT_SCHEMAS: Record<ToolName, Anthropic.Beta.BetaTool.InputSchema> = {
         items: {
           type: "object",
           properties: {
-            label: { type: "string" },
+            label: { type: "string", minLength: 1, maxLength: 120 },
             size: { type: "string", enum: ["small", "medium", "large"] },
           },
           required: ["label", "size"],
@@ -169,36 +179,41 @@ const INPUT_SCHEMAS: Record<ToolName, Anthropic.Beta.BetaTool.InputSchema> = {
     type: "object",
     properties: {
       days: { type: "integer", minimum: 1, maximum: 14 },
-      timezone: { type: "string", description: "IANA time zone of the visitor, e.g. Europe/London." },
+      timezone: { type: "string", maxLength: 64, description: "IANA time zone of the visitor, e.g. Europe/London." },
     },
   },
   propose_booking: {
     type: "object",
     properties: {
-      start: { type: "string", description: "ISO start time exactly as given in the slots card." },
-      timezone: { type: "string" },
-      agenda: { type: "string" },
+      start: { type: "string", maxLength: 40, description: "ISO start time exactly as listed by get_available_slots." },
+      timezone: { type: "string", maxLength: 64 },
+      agenda: { type: "string", maxLength: 500 },
     },
     required: ["start", "timezone"],
   },
   propose_quote_email: {
     type: "object",
-    properties: { quote_id: { type: "string" } },
+    properties: { quote_id: { type: "string", maxLength: 64 } },
     required: ["quote_id"],
   },
   propose_payment: {
     type: "object",
-    properties: { quote_id: { type: "string" }, purpose: { type: "string", enum: ["deposit", "full"] } },
+    properties: {
+      quote_id: { type: "string", maxLength: 64 },
+      purpose: { type: "string", enum: ["deposit", "balance", "full"] },
+    },
     required: ["quote_id", "purpose"],
   },
   show_quick_replies: {
     type: "object",
-    properties: { options: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 } },
+    properties: {
+      options: { type: "array", items: { type: "string", minLength: 1, maxLength: 60 }, minItems: 2, maxItems: 4 },
+    },
     required: ["options"],
   },
   handoff_to_human: {
     type: "object",
-    properties: { reason: { type: "string" } },
+    properties: { reason: { type: "string", maxLength: 500 } },
     required: ["reason"],
   },
 };
@@ -281,23 +296,7 @@ async function execute(name: ToolName, input: unknown, ctx: ToolContext): Promis
     }
     case "handoff_to_human": {
       const i = input as z.infer<typeof schemas.handoff_to_human>;
-      const lead = await ensureLead(sessionId);
-      const to = process.env.OWNER_EMAIL;
-      if (to) {
-        await getEmail()
-          .send({ to, ...ownerNotificationEmail("Handoff requested", lead, { Reason: i.reason, Summary: lead.summary ?? "-" }) })
-          .catch((err) => console.error("[chat] handoff email failed", err));
-      }
-      return {
-        text: "The developer has been notified and will follow up personally.",
-        cards: [
-          {
-            kind: "notice",
-            tone: "info",
-            text: "I've flagged this for Mxolisi to follow up personally. Share your contact details and Mxolisi can reach you directly.",
-          },
-        ],
-      };
+      return requestHandoff(sessionId, i.reason);
     }
   }
 }

@@ -19,8 +19,19 @@ export interface Lead {
   contact?: ContactDetails;
   /** Set once the visitor proves they own the email (6-digit code). */
   emailVerifiedAt?: string;
-  /** SHA-256 of the pending verification code + salt; cleared on success. */
-  verification?: { codeHash: string; expiresAt: string; attempts: number; sentCount: number; windowStart: string };
+  /**
+   * Pending verification: SHA-256 of the code + the address it was sent to +
+   * salt. `email` is that (normalised) address; the code only verifies it.
+   * The hash is cleared on success; the send counters survive email changes.
+   */
+  verification?: {
+    codeHash?: string;
+    email?: string;
+    expiresAt: string;
+    attempts: number;
+    sentCount: number;
+    windowStart: string;
+  };
   /** Free-form summary of what the client needs, maintained by the assistant. */
   summary?: string;
   serviceSlugs: string[];
@@ -58,12 +69,15 @@ export interface InvoiceRecord {
   currency: Currency;
   lines: QuoteLine[];
   total: number;
-  purpose: "deposit" | "full";
+  /** `balance` is the quote total less the invoices already issued against it. */
+  purpose: "deposit" | "balance" | "full";
   status: "open" | "paid" | "void";
   payment?: {
     provider: string;
     reference: string;
     url: string;
+    /** Amount sent to the provider at issue time (VAT included if it applied then). */
+    requested?: { amount: number; currency: Currency };
     charged?: { amount: number; currency: Currency; rate: number };
   };
   paidAt?: string;
@@ -151,6 +165,7 @@ export interface Store {
 
   saveBooking(b: BookingRecord): Promise<BookingRecord>;
   listBookings(leadId?: string): Promise<BookingRecord[]>;
+  getBookingByProviderId(providerBookingId: string): Promise<BookingRecord | null>;
 
   savePendingAction(a: PendingAction): Promise<PendingAction>;
   getPendingAction(id: string): Promise<PendingAction | null>;
@@ -164,6 +179,13 @@ export interface Store {
 
   /** Atomically increments and returns a named counter (used for document numbers). */
   nextSequence(name: "quote" | "invoice"): Promise<number>;
+
+  /**
+   * Fixed-window counter for throttles shared by every server instance:
+   * increments `key` and returns the count within the current window, which
+   * starts at the first increment and lasts `windowSeconds`.
+   */
+  incrementCounter(key: string, windowSeconds: number): Promise<number>;
 }
 
 /* ------------------------------------------------------------------ */

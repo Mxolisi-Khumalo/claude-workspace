@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { PDFArray, PDFDocument, PDFName, PDFRawStream, type PDFObject } from "pdf-lib";
 
+import { toTranscript } from "@/app/admin/transcript";
 import {
   bookingEmailToClient,
   documentUrl,
@@ -215,8 +216,10 @@ async function exerciseStore(store: AppStore) {
   assert.equal((await store.getInvoice(openUsdInvoice.id))?.status, "paid");
   assert.equal((await store.listInvoices(lead.id)).length, 1);
 
-  await store.saveBooking({ id: "booking_1", leadId: lead.id, provider: "mock", start: isoIn(DAY), end: isoIn(DAY + 1_800_000), timezone: "Africa/Johannesburg", status: "confirmed" });
+  await store.saveBooking({ id: "booking_1", leadId: lead.id, provider: "mock", providerBookingId: "cal_uid_1", start: isoIn(DAY), end: isoIn(DAY + 1_800_000), timezone: "Africa/Johannesburg", status: "confirmed" });
   assert.equal((await store.listBookings(lead.id)).length, 1);
+  assert.equal((await store.getBookingByProviderId("cal_uid_1"))?.id, "booking_1");
+  assert.equal(await store.getBookingByProviderId("cal_uid_missing"), null);
 
   const action = { id: "act_1", sessionId: lead.sessionId, leadId: lead.id, type: "book_call" as const, payload: { start: now }, status: "proposed" as const, createdAt: now, expiresAt: isoIn(900_000) };
   await store.savePendingAction(action);
@@ -239,6 +242,14 @@ async function exerciseStore(store: AppStore) {
   assert.equal(await store.nextSequence("quote"), 1);
   assert.equal(await store.nextSequence("quote"), 2);
   assert.equal(await store.nextSequence("invoice"), 1);
+
+  const counts = await Promise.all(Array.from({ length: 5 }, () => store.incrementCounter("throttle:a", 60)));
+  assert.deepEqual([...counts].sort(), [1, 2, 3, 4, 5], "increments are atomic");
+  assert.equal(await store.incrementCounter("throttle:b", 60), 1, "keys are independent");
+  assert.equal(await store.incrementCounter("throttle:short", 1), 1);
+  await new Promise((r) => setTimeout(r, 1100));
+  assert.equal(await store.incrementCounter("throttle:short", 1), 1, "a new window starts after the old one ends");
+  assert.equal(await store.incrementCounter("throttle:a", 60), 6);
 }
 
 async function main() {
@@ -530,7 +541,7 @@ async function main() {
     quote: quoteEmailToClient(quote, lead, pdfUrl),
     invoice: invoiceEmailToClient(openUsdInvoice, lead, documentUrl("invoice", openUsdInvoice.id)),
     booking: bookingEmailToClient({ start: "2026-11-03T08:00:00.000Z", end: "2026-11-03T08:30:00.000Z", timezone: "Europe/London", meetingUrl: "https://meet.example.com/mock_abc" }, lead),
-    verification: verificationEmail("042917", lead),
+    verification: verificationEmail("042917"),
     receipt: receiptEmailToClient(paidInvoice, lead, documentUrl("invoice", paidInvoice.id)),
     owner: ownerNotificationEmail("New verified lead", lead, { Summary: lead.summary!, Services: "web-apps" }),
   };
@@ -560,6 +571,36 @@ async function main() {
     assert.ok(emails.quote.html.includes(escapeHtml(pdfUrl)));
     assert.match(emails.owner.html, /&lt;script&gt;/);
     assert.match(emails.owner.html, /mailto:thandi@example\.com/);
+    assert.ok(!emails.verification.text.includes("Thandi"), "verification email (to an unproven address) carries no visitor text");
+  });
+  await check("balance invoices are labelled 'Balance due'", async () => {
+    const balance: InvoiceRecord = {
+      ...openUsdInvoice,
+      id: "inv_balance",
+      currency: "ZAR",
+      purpose: "balance",
+      lines: [...quote.lines, { label: "Less invoice INV-2026-0003 (deposit)", amount: -26160 }],
+      total: 39240,
+      payment: { ...openUsdInvoice.payment!, charged: undefined },
+    };
+    assert.match(invoiceEmailToClient(balance, lead, "https://x").text, /For: Balance due/);
+    const t = await pdfText(await renderInvoicePdf(balance, lead));
+    assert.match(t, /Balance due/);
+    assert.match(t, /-R/);
+  });
+
+  console.log("admin");
+  await check("transcript: the per-turn system context attaches to the visitor turn", () => {
+    const entries = toTranscript([
+      { role: "user", content: "Hi" },
+      { role: "system", content: "[app context]\nNow: today\n[app event] Visitor confirmed." },
+      { role: "assistant", content: [{ type: "text", text: "Hello" }, { type: "tool_use", name: "create_quote" }] },
+      { role: "user", content: [{ type: "tool_result", content: "ok" }] },
+    ]);
+    assert.equal(entries.length, 2);
+    assert.equal(entries[0].text, "Hi");
+    assert.match(entries[0].context, /^\[app context\][\s\S]*\[app event\] Visitor confirmed\.$/);
+    assert.deepEqual(entries[1].tools, ["create_quote"]);
   });
 
   console.log("factories (demo defaults, temp cwd)");

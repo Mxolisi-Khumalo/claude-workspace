@@ -68,27 +68,41 @@ function ContactForm({ card, active }: { card: Extract<ChatCard, { kind: "contac
       onSubmit={(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
+        const field = (name: string) => String(f.get(name) ?? "").trim();
         setSent(true);
+        // Unlock the form again if the details were rejected or the request failed.
         void sendChat({
           action: {
             type: "submit_contact",
             website: String(f.get("website") ?? ""),
             contact: {
-              name: String(f.get("name") ?? ""),
-              email: String(f.get("email") ?? ""),
-              company: String(f.get("company") ?? "") || undefined,
-              phone: String(f.get("phone") ?? "") || undefined,
+              name: field("name"),
+              email: field("email"),
+              company: field("company") || undefined,
+              phone: field("phone") || undefined,
               consent: true,
             },
           },
+        }).then((ok) => {
+          if (!ok) setSent(false);
         });
       }}
     >
       <Header eyebrow="Your details" title={card.reason ? `Share your details ${card.reason}` : "Share your details"} />
       <fieldset disabled={sent || !active} className="grid gap-2.5">
         <div className="grid gap-2.5 sm:grid-cols-2">
-          <Input name="name" label="Full name" autoComplete="name" required defaultValue={card.prefill?.name} />
-          <Input name="email" label="Email" type="email" autoComplete="email" required defaultValue={card.prefill?.email} />
+          {/* Same rules as the server (engine.ts), so mistakes are caught before sending. */}
+          <Input name="name" label="Full name" autoComplete="name" required pattern=".*\S.*" title="Please enter your name" defaultValue={card.prefill?.name} />
+          <Input
+            name="email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            required
+            pattern="[^\s@]+@[^\s@]+\.[^\s@]{2,}"
+            title="Please enter a full email address, like name@company.com"
+            defaultValue={card.prefill?.email}
+          />
           <Input name="company" label="Company (optional)" autoComplete="organization" defaultValue={card.prefill?.company} />
           <Input name="phone" label="Phone (optional)" type="tel" autoComplete="tel" defaultValue={card.prefill?.phone} />
         </div>
@@ -118,7 +132,7 @@ function Input({ label: text, ...props }: React.InputHTMLAttributes<HTMLInputEle
       <span className={label}>{text}</span>
       <input
         {...props}
-        className="rounded-xl border border-line bg-bg/60 px-3 py-2 text-sm text-fg outline-none transition-colors placeholder:text-fg-subtle focus:border-accent"
+        className="rounded-xl border border-line bg-bg/60 px-3 py-2 text-base text-fg outline-none transition-colors placeholder:text-fg-subtle focus:border-accent md:text-sm"
       />
     </label>
   );
@@ -190,7 +204,10 @@ function Confirm({ card, active }: { card: Extract<ChatCard, { kind: "confirm" }
             className={btnPrimary}
             onClick={() => {
               setChoice("confirmed");
-              void sendChat({ action: { type: "confirm_action", actionId: card.actionId } });
+              // Only optimistic: if nothing was confirmed, offer the buttons again.
+              void sendChat({ action: { type: "confirm_action", actionId: card.actionId } }).then((ok) => {
+                if (!ok) setChoice(null);
+              });
             }}
           >
             {card.confirmLabel}
@@ -200,7 +217,9 @@ function Confirm({ card, active }: { card: Extract<ChatCard, { kind: "confirm" }
             className={btnGhost}
             onClick={() => {
               setChoice("cancelled");
-              void sendChat({ action: { type: "cancel_action", actionId: card.actionId } });
+              void sendChat({ action: { type: "cancel_action", actionId: card.actionId } }).then((ok) => {
+                if (!ok) setChoice(null);
+              });
             }}
           >
             Not now
@@ -279,7 +298,9 @@ function Slots({ card, active }: { card: Extract<ChatCard, { kind: "slots" }>; a
             disabled={!active || picked !== null}
             onClick={() => {
               setPicked(s.start);
-              void sendChat({ action: { type: "pick_slot", start: s.start, label: s.label } });
+              void sendChat({ action: { type: "pick_slot", start: s.start, label: s.label } }).then((ok) => {
+                if (!ok) setPicked(null);
+              });
             }}
             className={clsx(
               "rounded-xl border px-3 py-2 text-left text-xs transition-colors disabled:cursor-not-allowed",
@@ -312,7 +333,7 @@ function Booking({ card }: { card: Extract<ChatCard, { kind: "booking" }> }) {
 function Payment({ card }: { card: Extract<ChatCard, { kind: "payment" }> }) {
   return (
     <div className={clsx(shell, "border-accent/40")}>
-      <Header eyebrow={`Secure payment · ${card.provider}`} title={card.purpose === "deposit" ? "Pay your deposit" : "Pay in full"} />
+      <Header eyebrow={`Secure payment · ${card.provider}`} title={card.purpose === "deposit" ? "Pay your deposit" : card.purpose === "balance" ? "Pay the balance" : "Pay in full"} />
       <p className="display text-3xl">{money(card.amount, card.currency)}</p>
       {card.charged && (
         <p className="mt-1 text-xs text-fg-muted">

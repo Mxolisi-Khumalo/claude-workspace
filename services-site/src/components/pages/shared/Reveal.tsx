@@ -10,7 +10,9 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 /**
  * Staggered fade-up for `[data-reveal]` descendants (or the wrapper itself
  * when there are none). Content is server-rendered and fully visible without
- * JS; the animation only runs when motion is allowed.
+ * JS; the animation only runs when motion is allowed. Hidden content stays
+ * focusable (opacity, not visibility) and appears at once when keyboard
+ * focus reaches it before the scroll trigger does.
  */
 export function Reveal({
   children,
@@ -41,16 +43,19 @@ export function Reveal({
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const found = el.querySelectorAll("[data-reveal]");
         const targets = found.length ? Array.from(found) : [el];
-        gsap.from(targets, {
+        const tween = gsap.from(targets, {
           y,
-          autoAlpha: 0,
+          opacity: 0,
           duration: 1.1,
           ease: "expo.out",
           stagger,
           delay,
-          clearProps: "transform,visibility,opacity",
+          clearProps: "transform,opacity",
           scrollTrigger: immediate ? undefined : { trigger: el, start: "top 86%", once: true },
         });
+        const reveal = () => tween.progress(1);
+        el.addEventListener("focusin", reveal);
+        return () => el.removeEventListener("focusin", reveal);
       });
       return () => mm.revert();
     },

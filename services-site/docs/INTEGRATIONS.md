@@ -24,12 +24,14 @@ With **no environment variables at all**, everything still works on your machine
 - **Storage.** Records are written to `.data/store.json`, which git ignores. On Vercel they are kept in memory and reset whenever the function restarts.
 - **Payments.** A payment link opens `/demo/checkout/<invoice number>`, a fake hosted checkout with two buttons: "Simulate successful payment" and "Simulate failed payment". A successful simulation follows the same signed-webhook path as a real Paystack payment: the invoice is marked paid, a receipt email is sent and you are notified.
 - **Calendar.** Bookable slots are generated, and each booking gets a placeholder meeting link.
-- **Email.** Nothing is sent. Every message (verification codes, quotes, invoices, booking confirmations, receipts, owner notifications) appears at `/demo/outbox`, where you can preview it.
-- **Admin.** `/admin` is open while you run `npm run dev` and no `ADMIN_PASSWORD` is set.
+- **Email.** Nothing is sent. Every message (verification codes, quotes, invoices, booking confirmations, receipts, owner notifications) appears at `/demo/outbox`, where you can preview it. While payments, calendar and email are *all* mocks, the chat also shows the verification code, since no email arrives.
+- **Admin.** `/admin` and `/demo/outbox` are open while you run `npm run dev` and no `ADMIN_PASSWORD` is set.
 
 Setting **`DEMO_MODE=true`** forces payments, calendar and email back to their mocks even when keys are present. Use it for preview deployments and screenshots. Storage still follows `DATABASE_URL`.
 
 > **Before you take real clients, read this.** On a production deployment without `PAYSTACK_SECRET_KEY`, invoices still link to the **demo checkout**. Clients would "pay" without any money moving. Set the Paystack key, leave `DEMO_MODE` unset, then check that `/api/health` shows `"payments":"paystack"`.
+>
+> **Switch on email before payments or Cal.com.** A verification code proves an address only if it is really emailed. If Cal.com or Paystack is live but `RESEND_API_KEY` is not set, the code is never shown in the chat, and in production the concierge refuses to verify at all: visitors are asked to email you instead, and nothing can be booked, emailed or invoiced. In development the code lands in `/demo/outbox`.
 
 ### Run it locally
 
@@ -87,10 +89,12 @@ Paystack is Stripe's South African company. It settles in **ZAR only**. USD quot
    - change the key to `sk_live_…`;
    - set the **Live** webhook URL. It is a separate field from the Test one.
 
+Invoices against a quote: the concierge offers the **deposit** or **full** amount while nothing has been invoiced on that quote. After that it can only issue the **balance** (the quote total less every invoice that isn't void), and it refuses once the quote is fully invoiced. Void an invoice in the database to reissue it.
+
 How fulfilment works: the webhook and the return page both call one fulfilment routine. That routine:
 
 - re-verifies the transaction with Paystack, server to server;
-- checks the amount and currency;
+- checks the amount and currency against what the payment link asked for (recorded on the invoice when it was issued, so a later `VAT_REGISTERED` change doesn't strand a payment);
 - marks the invoice paid;
 - emails the receipt and notifies you.
 
@@ -110,6 +114,8 @@ It is idempotent, so retries and duplicate deliveries do no harm.
    With the webhook in place, calls the client cancels or moves through Cal.com's own emails stay in sync in `/admin`. Without the secret, the endpoint returns 404.
 6. `SCHEDULING_PROVIDER` is optional. Cal.com is used automatically once the key and event type id are both set.
 
+The concierge only books the exact slots it offered, one upcoming call per visitor, and at most 3 calls per verified email address per week. Clients move a call with the reschedule link in Cal.com's confirmation email. You can also limit bookings per booker in the Cal.com event type settings.
+
 ### 2.5 Resend (email)
 
 1. Create an account at https://resend.com.
@@ -128,7 +134,15 @@ It is idempotent, so retries and duplicate deliveries do no harm.
    - `OWNER_EMAIL`: where lead, booking and payment notifications go. It is also the reply-to address on client emails.
 7. The free tier allows about 100 emails a day and 3,000 a month, which is plenty to start with.
 
-Client emails are fixed templates. The bot cannot write free-form email to arbitrary addresses, and nothing except the 6-digit verification code is sent to an address until it is verified.
+Client emails are fixed templates. The bot cannot write free-form email to arbitrary addresses, and nothing except the 6-digit verification code is sent to an address until it is verified. The verification email contains no visitor-supplied text (not even the name), and a code only verifies the address it was sent to.
+
+Verification emails are rate-limited in the store, so the limits hold across sessions and server instances:
+
+- 3 codes per hour per conversation;
+- 3 per hour and 10 per day per recipient address;
+- 200 per day for the whole site. Set `VERIFICATION_EMAILS_PER_DAY` to change this; keep it well under your Resend quota so quotes, invoices and receipts still go out.
+
+"Handoff requested" emails to you are sent at most once per visitor per day and 20 times a day in total (`HANDOFF_EMAILS_PER_DAY`).
 
 ### 2.6 Neon Postgres (storage)
 
@@ -148,7 +162,7 @@ From there:
 - **Sessions.** A session lasts 8 hours, and the cookie is httpOnly, Secure and SameSite=Lax. Changing the password signs every session out.
 - **Login limit.** Five attempts per 15 minutes per IP, counted separately on each server instance.
 - **Without a password.** `/admin` is open under `npm run dev` and returns **404 everywhere else**, so a deployment never exposes it by accident.
-- **Outbox.** On a production deployment with a password set, `/demo/outbox` also requires an admin sign-in, because it can contain visitors' names and emails.
+- **Outbox.** `/demo/outbox` follows the same rule in production: it needs an admin sign-in, and returns 404 without `ADMIN_PASSWORD`, because it holds every visitor's names, emails and signed document links.
 
 ### 2.8 Business details on documents
 
@@ -186,10 +200,10 @@ Security headers (HSTS, `X-Frame-Options: DENY`, `nosniff`, a strict referrer po
 | `POST /api/webhooks/calcom` | Booking cancelled or rescheduled | `X-Cal-Signature-256`: hex HMAC-SHA256 of the raw body, keyed with `CALCOM_WEBHOOK_SECRET`. 404 when the secret is unset. |
 | `POST /api/webhooks/mock` | Demo payments | `x-mock-signature`: hex HMAC-SHA256 keyed with `SESSION_SECRET`. 404 unless the mock payment provider is active. |
 | `GET /api/documents/{quote\|invoice}/{id}?token=` | Quote and invoice PDFs | HMAC token from the signed link. Every failure returns 404. |
-| `GET /pay/complete?ref=` | Payment return page | Re-verifies with the provider and is rate-limited. The PDF link appears only when the URL also carries the document token (`&t=`). |
+| `GET /pay/complete?ref=` | Payment return page | Re-verifies with the provider and is rate-limited. Without the document token (`&t=`, on every payment return link) it shows the status only; invoice details, the masked email, the payment link and the PDF need the token. |
 | `GET /api/health` | Adapter status | Public. Names only. |
 
-Every webhook event is recorded once per provider event id. A bad signature gets 401. If processing fails, the endpoint returns 500 so the provider retries; a retry is processed again only while the invoice is still open.
+Every webhook event is recorded once per provider event id. A bad signature gets 401. If processing fails, the endpoint returns 500 so the provider retries. A payment retry is processed again only while the invoice is still open; a Cal.com event is recorded only after its update is saved, so a retry applies it in full.
 
 ---
 

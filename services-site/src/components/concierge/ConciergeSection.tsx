@@ -1,21 +1,23 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { registerInlinePanel, useChat } from "@/lib/chat/client";
 import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
+import { useMotionPaused } from "@/hooks/useMotionPaused";
 import { RevealText } from "@/components/ui/RevealText";
 import { ChatPanel } from "./ChatPanel";
 import { MiniBot } from "./MiniBot";
 
-const BotHead = dynamic(() => import("./BotHead"), {
-  ssr: false,
-  loading: () => (
-    <div className="grid h-full w-full place-items-center">
+function BotPlaceholder() {
+  return (
+    <div className="absolute inset-0 grid place-items-center">
       <MiniBot size={120} />
     </div>
-  ),
-});
+  );
+}
+
+const BotHead = dynamic(() => import("./BotHead"), { ssr: false, loading: BotPlaceholder });
 
 const CAPABILITIES = [
   { k: "01", t: "Scopes your project", d: "Asks the right questions — never more than a couple at a time." },
@@ -39,7 +41,27 @@ const TRUST = [
 export function ConciergeSection() {
   const chat = useChat();
   const reduced = usePrefersReducedMotion();
+  const paused = useMotionPaused();
   const panelWrap = useRef<HTMLDivElement>(null);
+  const botWrap = useRef<HTMLDivElement>(null);
+  const [botNear, setBotNear] = useState(false);
+
+  // The 3D bot pulls in three.js (~1 MB) and a second WebGL context, so it is
+  // only fetched once the section is about to scroll into view.
+  useEffect(() => {
+    const el = botWrap.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setBotNear(true);
+        io.disconnect();
+      },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = panelWrap.current;
@@ -78,9 +100,16 @@ export function ConciergeSection() {
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
           <div className="relative flex flex-col">
-            <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-lg)] border border-line bg-[radial-gradient(circle_at_50%_40%,rgb(126_231_135/0.12),transparent_60%)]">
+            <div
+              ref={botWrap}
+              className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-lg)] border border-line bg-[radial-gradient(circle_at_50%_40%,rgb(126_231_135/0.12),transparent_60%)]"
+            >
               <div className="grid-bg absolute inset-0 opacity-60" aria-hidden />
-              <BotHead mood={chat.mood} reduced={reduced} className="absolute inset-0" />
+              {botNear ? (
+                <BotHead mood={chat.mood} reduced={reduced || paused} className="absolute inset-0" />
+              ) : (
+                <BotPlaceholder />
+              )}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between p-5 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
                 <span>byte.v1 · {chat.mood}</span>
                 <span className="text-accent">● online</span>

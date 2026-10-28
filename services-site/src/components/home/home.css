@@ -282,7 +282,10 @@
 
 /* ---------- Proof: pinned horizontal mode --------------------------------- */
 .hm-proof[data-mode="h"] .hm-proof-pin {
+  /* clip, not hidden: a hidden box is still a scroll container, so focusing
+     an off-screen card would scroll it sideways and desync the track. */
   overflow: hidden;
+  overflow: clip;
   min-height: 100svh;
   display: flex;
   flex-direction: column;

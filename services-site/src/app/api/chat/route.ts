@@ -59,9 +59,19 @@ export async function POST(req: Request) {
   const body = parsed.data as unknown as ChatRequest;
 
   const encoder = new TextEncoder();
+  // Once the visitor disconnects, emitting becomes a no-op so the turn still
+  // finishes and the conversation (with any side effects) is saved.
+  let closed = false;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const emit = (e: ChatStreamEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+      const emit = (e: ChatStreamEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+        } catch {
+          closed = true;
+        }
+      };
       try {
         await handleChat(body, emit);
       } catch (err) {
@@ -69,8 +79,18 @@ export async function POST(req: Request) {
         if (!(err instanceof ChatInputError)) console.error("[chat] request failed", err);
         emit({ type: "error", message });
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            // Already cancelled.
+          }
+        }
       }
+    },
+    cancel() {
+      closed = true;
     },
   });
 

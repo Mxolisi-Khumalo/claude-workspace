@@ -25,8 +25,10 @@ export function Nav() {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 24);
-      setHidden(y > 240 && y > last + 2);
-      if (y < last - 2) setHidden(false);
+      // Ignore sub-2px moves: Lenis eases out in tiny steps, which must not
+      // count as scrolling back up and slide the bar in after every scroll.
+      if (y <= 240 || y < last - 2) setHidden(false);
+      else if (y > last + 2) setHidden(true);
       last = y;
     };
     onScroll();
@@ -45,7 +47,9 @@ export function Nav() {
     <header
       className={clsx(
         "fixed inset-x-0 top-0 z-50 transition-transform duration-500 ease-[var(--ease-out)]",
-        hidden && !menuOpen && "-translate-y-full",
+        // Slide back in whenever keyboard focus lands inside the hidden bar
+        // (not after a mouse click, so a clicked link doesn't pin it open).
+        hidden && !menuOpen && "-translate-y-full has-[:focus-visible]:translate-y-0",
       )}
     >
       <div

@@ -29,12 +29,14 @@ import type { ConversationRecord } from "@/lib/integrations/types";
 type Emit = (e: ChatStreamEvent) => void;
 
 type NextStep = "book" | "email" | "pay";
+type PayPurpose = "deposit" | "balance" | "full";
 
 interface DemoState {
   serviceSlug?: string;
   currency?: Currency;
   quoteId?: string;
   nextStep?: NextStep;
+  payPurpose?: PayPurpose;
   awaiting?: "service" | "currency" | "scope" | "next" | "slot";
 }
 
@@ -112,9 +114,15 @@ export function matchServices(text: string): Service[] {
 
 function detectCurrency(text: string): Currency | undefined {
   const t = text.toLowerCase();
-  if (/\b(usd|dollar|us\$|\$)/.test(t) || /\binternational|uk|usa|europe|abroad\b/.test(t)) return "USD";
+  if (/\b(usd|dollar|us\$|\$)/.test(t) || /\b(international|uk|usa|europe|abroad)\b/.test(t)) return "USD";
   if (/\b(zar|rand|r\d|south africa|joburg|johannesburg|cape town|durban|local)\b/.test(t)) return "ZAR";
   return undefined;
+}
+
+/** The biggest one-off package (monthly retainers excluded), for "the full thing"-style answers. */
+function largestPackage(service: Service) {
+  const oneOff = service.packages.filter((p) => !/month/i.test(p.timeline));
+  return [...(oneOff.length ? oneOff : service.packages)].sort((a, b) => b.priceFromZar - a.priceFromZar)[0];
 }
 
 function detectNextStep(text: string): NextStep | undefined {
@@ -123,6 +131,14 @@ function detectNextStep(text: string): NextStep | undefined {
   if (/\b(email|send|pdf|mail)\b/.test(t)) return "email";
   if (/\b(pay|deposit|invoice|start|go ahead|reserve)\b/.test(t)) return "pay";
   return undefined;
+}
+
+/** Which invoice a "pay" request means; planInvoice turns a balance with nothing invoiced into "full". */
+function detectPayPurpose(text: string): PayPurpose {
+  const t = text.toLowerCase();
+  if (/\b(balance|remaining|remainder|rest|outstanding)\b/.test(t)) return "balance";
+  if (/\b(in full|full amount|whole amount)\b/.test(t)) return "full";
+  return "deposit";
 }
 
 /* ------------------------------------------------------------------ */
@@ -167,7 +183,8 @@ export async function runDemoTurn({ conv, userText, action, timezone, context, e
   // Only interpret free text / quick replies; synthesized action text
   // (e.g. "(I've verified my email.)") must not change the plan.
   const typed = !action || action.type === "quick_reply";
-  const currency = typed ? detectCurrency(text) : undefined;
+  // Only while choosing one: scope answers ("usage stats", "users") must not flip it.
+  const currency = typed && (!state.currency || state.awaiting === "currency") ? detectCurrency(text) : undefined;
   if (currency) state.currency = currency;
   const step = typed ? detectNextStep(text) : undefined;
 
@@ -216,7 +233,7 @@ export async function runDemoTurn({ conv, userText, action, timezone, context, e
     }
     const pkg =
       service.packages.find((p) => text.toLowerCase().includes(p.name.toLowerCase())) ??
-      (/\b(big|large|full|everything|works|premium)\b/i.test(text) ? service.packages.at(-1) : service.packages[0]);
+      (/\b(big|large|full|everything|works|premium)\b/i.test(text) ? largestPackage(service) : service.packages[0]);
     await say(emit, `Great — pricing the **${pkg!.name}** package now.`);
     const r = await tool(emit, "create_quote", "Pricing your project", () =>
       createQuote(sessionId, { selections: [{ serviceSlug: service.slug, packageName: pkg!.name }], extras: [], currency: state.currency!, rush: false }),
@@ -231,6 +248,7 @@ export async function runDemoTurn({ conv, userText, action, timezone, context, e
 
   // 4) Next steps — need a verified email first.
   if (step) state.nextStep = step;
+  if (step === "pay") state.payPurpose = detectPayPurpose(text);
   if (!state.nextStep) {
     await say(emit, "I can book a free 30-minute call, email you the quote as a PDF, or issue a deposit invoice. Which would you like?");
     replies(emit, ["Book a discovery call", "Email me the quote", "Pay the deposit"]);
@@ -264,7 +282,14 @@ export async function runDemoTurn({ conv, userText, action, timezone, context, e
     return;
   }
 
-  await say(emit, "Here's the deposit invoice to reserve your start date — confirm below to get the secure payment link.");
-  await tool(emit, "propose_payment", "Preparing your invoice", () => proposeInvoice(sessionId, state.quoteId!, "deposit"));
+  const purpose = state.payPurpose ?? "deposit";
+  await say(
+    emit,
+    purpose === "deposit"
+      ? "Here's the deposit invoice to reserve your start date — confirm below to get the secure payment link."
+      : "Here's the invoice for what's left on your quote — confirm below to get the secure payment link.",
+  );
+  await tool(emit, "propose_payment", "Preparing your invoice", () => proposeInvoice(sessionId, state.quoteId!, purpose));
   state.nextStep = undefined;
+  state.payPurpose = undefined;
 }

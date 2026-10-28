@@ -6,35 +6,56 @@ import type { BotMood } from "./BotHead";
 import { ensurePointerTracking, pointer } from "@/hooks/usePointer";
 
 /**
- * Lightweight 2D version of the concierge robot (pure CSS + one rAF loop) for
- * the floating launcher and chat avatar, where a WebGL canvas would be
+ * Lightweight 2D version of the concierge robot (pure CSS + a short rAF loop)
+ * for the floating launcher and chat avatar, where a WebGL canvas would be
  * overkill. Its pupils glance toward the cursor.
  */
 export function MiniBot({ mood = "idle", size = 40, className }: { mood?: BotMood; size?: number; className?: string }) {
   const eyes = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const el = eyes.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     ensurePointerTracking();
     let frame = 0;
     let x = 0;
     let y = 0;
+    let onScreen = false;
+    // Runs only until the pupils settle; pointer moves and scrolling wake it.
     const tick = () => {
-      const el = eyes.current;
-      if (el) {
-        const r = el.getBoundingClientRect();
-        const dx = pointer.x - (r.left + r.width / 2);
-        const dy = pointer.y - (r.top + r.height / 2);
-        const d = Math.hypot(dx, dy) || 1;
-        const reach = Math.min(1, d / 300);
-        x += ((dx / d) * reach * size * 0.06 - x) * 0.2;
-        y += ((dy / d) * reach * size * 0.05 - y) * 0.2;
-        el.style.transform = `translate(${x}px, ${y}px)`;
-      }
+      frame = 0;
+      const r = el.getBoundingClientRect();
+      const dx = pointer.x - (r.left + r.width / 2);
+      const dy = pointer.y - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy) || 1;
+      const reach = Math.min(1, d / 300);
+      const tx = (dx / d) * reach * size * 0.06;
+      const ty = (dy / d) * reach * size * 0.05;
+      x += (tx - x) * 0.2;
+      y += (ty - y) * 0.2;
+      el.style.transform = `translate(${x}px, ${y}px)`;
+      if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) frame = requestAnimationFrame(tick);
+    };
+    const wake = () => {
+      if (frame || !onScreen) return;
+      // Skip copies nobody can see: the closed dock panel, the hidden launcher
+      // or a preview card that hasn't been revealed.
+      if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return;
       frame = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    const io = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      wake();
+    });
+    io.observe(el);
+    window.addEventListener("pointermove", wake, { passive: true });
+    window.addEventListener("scroll", wake, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      io.disconnect();
+      window.removeEventListener("pointermove", wake);
+      window.removeEventListener("scroll", wake);
+    };
   }, [size]);
 
   const eyeColor =

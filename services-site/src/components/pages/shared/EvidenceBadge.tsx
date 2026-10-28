@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import type { EvidenceStrength } from "@/content/types";
+import { DismissibleTip } from "./DismissibleTip";
 import { strengthCopy } from "./helpers";
 
 const bars: Record<EvidenceStrength, number> = { strong: 3, moderate: 2, emerging: 1 };
@@ -34,7 +35,8 @@ export function StrengthMeter({ strength }: { strength: EvidenceStrength }) {
 /**
  * Evidence-strength badge. With `explain`, it becomes a focusable trigger
  * whose honest explanation appears on hover or focus (and is announced to
- * screen readers via aria-describedby). Pure CSS — works without JS.
+ * screen readers via aria-describedby). Pure CSS — works without JS; a tiny
+ * client host adds Escape to dismiss.
  */
 export function EvidenceBadge({
   strength,
@@ -71,7 +73,7 @@ export function EvidenceBadge({
 
   const tipId = id ?? `strength-${strength}`;
   return (
-    <span className="mkp-tip">
+    <DismissibleTip>
       <button type="button" aria-describedby={tipId} className="rounded-full">
         {pill}
         <span className="sr-only">: what does this mean?</span>
@@ -84,6 +86,6 @@ export function EvidenceBadge({
         <span className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.12em] text-fg">{copy.label}</span>
         {copy.explain}
       </span>
-    </span>
+    </DismissibleTip>
   );
 }

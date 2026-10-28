@@ -69,7 +69,7 @@ export function Proof({ items }: { items: ProofCardData[] }) {
         tr.dataset.cursorLabel = "Scroll";
         const dist = () => Math.max(0, tr.scrollWidth - window.innerWidth);
         const n = items.length;
-        gsap.to(tr, {
+        const tween = gsap.to(tr, {
           x: () => -dist(),
           ease: "none",
           scrollTrigger: {
@@ -86,7 +86,22 @@ export function Proof({ items }: { items: ProofCardData[] }) {
           },
         });
         document.fonts?.ready.then(() => ScrollTrigger.refresh());
+
+        // Keyboard focus on an off-screen card: scroll the page to the point
+        // in the pinned range where that card sits in view.
+        const onFocus = (e: FocusEvent) => {
+          const st = tween.scrollTrigger;
+          const card = (e.target as Element).closest<HTMLElement>(".hm-proof-card");
+          if (!st || !card) return;
+          const r = card.getBoundingClientRect();
+          if (r.left >= 0 && r.right <= window.innerWidth) return;
+          const offset = r.left - tr.getBoundingClientRect().left;
+          const x = gsap.utils.clamp(0, dist(), offset - (window.innerWidth - r.width) / 2);
+          window.scrollTo({ top: st.start + (x / (dist() || 1)) * (st.end - st.start), behavior: "instant" });
+        };
+        tr.addEventListener("focusin", onFocus);
         return () => {
+          tr.removeEventListener("focusin", onFocus);
           delete sec.dataset.mode;
           delete tr.dataset.cursor;
           delete tr.dataset.cursorLabel;

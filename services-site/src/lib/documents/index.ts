@@ -11,6 +11,7 @@ import { totalsFor } from "./shared";
  */
 
 export { renderInvoicePdf, renderQuotePdf } from "./pdf";
+export { purposeLabel } from "./shared";
 export {
   bookingEmailToClient,
   escapeHtml,

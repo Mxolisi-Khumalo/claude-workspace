@@ -23,6 +23,9 @@ export function adminMode(): AdminMode {
   return process.env.NODE_ENV === "development" ? "open" : "disabled";
 }
 
+/** Only local development serves /demo/outbox without an admin session (see requireOutboxAccess). */
+export const outboxIsPublic = () => process.env.NODE_ENV !== "production";
+
 const sign = (password: string, exp: number) =>
   createHmac("sha256", password).update(`admin:${exp}`).digest("hex");
 

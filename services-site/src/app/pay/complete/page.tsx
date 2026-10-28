@@ -3,14 +3,14 @@ import Link from "next/link";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { connection } from "next/server";
+import { outboxIsPublic } from "@/app/admin/auth";
 import { profile } from "@/content";
-import { rateLimit } from "@/lib/chat/server/rate-limit";
-import { fulfilPayment } from "@/lib/concierge/actions";
 import { formatMoney } from "@/lib/concierge/pricing";
-import { amountDue, documentUrl, verifyDocumentToken } from "@/lib/documents";
-import { getStore, isMockEmail } from "@/lib/integrations";
+import { amountDue, purposeLabel } from "@/lib/documents";
+import { isMockEmail } from "@/lib/integrations";
 import type { InvoiceRecord } from "@/lib/integrations/types";
 import { AutoRefresh } from "./AutoRefresh";
+import { paymentStatus, type PaymentStatus } from "./status";
 
 export const metadata: Metadata = {
   title: "Payment status",
@@ -19,63 +19,12 @@ export const metadata: Metadata = {
 
 export const instant = false;
 
-const REF = /^[A-Za-z0-9_-]{1,64}$/;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-
-type Outcome =
-  | { state: "paid"; invoice: InvoiceRecord; pdfUrl?: string; emailHint?: string }
-  | { state: "pending"; invoice: InvoiceRecord }
-  | { state: "void"; invoice: InvoiceRecord }
-  | { state: "missing" | "busy" | "error" };
 
 async function clientKey() {
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
   return createHash("sha256").update(`${ip}:${process.env.SESSION_SECRET ?? "dev-secret"}`).digest("hex").slice(0, 32);
-}
-
-function maskEmail(email?: string) {
-  if (!email) return undefined;
-  const [user, domain] = email.split("@");
-  return domain ? `${user.slice(0, 1)}•••@${domain}` : undefined;
-}
-
-function tokenValid(invoiceId: string, token: string) {
-  try {
-    return verifyDocumentToken("invoice", invoiceId, token);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Invoice numbers are sequential, so the PDF link (which carries the client's
- * details) is only shown when the URL also has the invoice's document token
- * (`t`). Without it the page confirms status and points to the receipt email.
- */
-async function check(ref: string | undefined, token: string | undefined): Promise<Outcome> {
-  if (!ref || !REF.test(ref)) return { state: "missing" };
-  if (!rateLimit(`pay-complete:${await clientKey()}`, 30, 10 * 60 * 1000).ok) return { state: "busy" };
-
-  let invoice: InvoiceRecord | null;
-  try {
-    // Safe to call from a public page: it re-verifies with the provider and is idempotent.
-    invoice = await fulfilPayment(ref);
-  } catch (err) {
-    console.error("[pay] status check failed", err);
-    return { state: "error" };
-  }
-  if (!invoice) return { state: "missing" };
-  if (invoice.status === "void") return { state: "void", invoice };
-  if (invoice.status !== "paid") return { state: "pending", invoice };
-
-  const lead = await getStore().getLead(invoice.leadId);
-  return {
-    state: "paid",
-    invoice,
-    pdfUrl: token && tokenValid(invoice.id, token) ? documentUrl("invoice", invoice.id) : undefined,
-    emailHint: maskEmail(lead?.contact?.email),
-  };
 }
 
 const fmtDate = (iso?: string) =>
@@ -91,8 +40,8 @@ function Details({ invoice }: { invoice: InvoiceRecord }) {
   const charged = invoice.payment?.charged;
   const rows: [string, string][] = [
     ["Invoice", invoice.number],
-    ["For", invoice.purpose === "deposit" ? "Project deposit" : "Payment in full"],
-    ["Amount", formatMoney(amountDue(invoice.total, invoice.currency), invoice.currency)],
+    ["For", purposeLabel(invoice.purpose)],
+    ["Amount", formatMoney(invoice.payment?.requested?.amount ?? amountDue(invoice.total, invoice.currency), invoice.currency)],
   ];
   if (charged) rows.push(["Charged", `${formatMoney(charged.amount, charged.currency)} · rate ${charged.rate}`]);
   if (invoice.paidAt) rows.push(["Paid", fmtDate(invoice.paidAt)]);
@@ -136,7 +85,7 @@ function Icon({ tone }: { tone: "ok" | "wait" | "bad" }) {
   );
 }
 
-function Body({ outcome, mockEmail, selfHref }: { outcome: Outcome; mockEmail: boolean; selfHref: string }) {
+function Body({ outcome, showOutbox, selfHref }: { outcome: PaymentStatus; showOutbox: boolean; selfHref: string }) {
   const contact = profile.email ? (
     <a href={`mailto:${profile.email}`} className="text-accent hover:underline">
       {profile.email}
@@ -163,14 +112,14 @@ function Body({ outcome, mockEmail, selfHref }: { outcome: Outcome; mockEmail: b
             ) : null}
             . {profile.shortName} has been notified and will be in touch about next steps.
           </p>
-          <Details invoice={outcome.invoice} />
+          {outcome.invoice && <Details invoice={outcome.invoice} />}
           <div className="mt-8 flex flex-wrap gap-3">
             {outcome.pdfUrl && (
               <a href={outcome.pdfUrl} target="_blank" rel="noopener noreferrer" className={primary}>
                 Download invoice (PDF)
               </a>
             )}
-            {mockEmail && (
+            {showOutbox && (
               <Link href="/demo/outbox" className={outcome.pdfUrl ? outline : primary}>
                 View the receipt email
               </Link>
@@ -190,11 +139,12 @@ function Body({ outcome, mockEmail, selfHref }: { outcome: Outcome; mockEmail: b
           <h1 className="display mt-3 text-4xl sm:text-5xl">Almost there.</h1>
           <p className="mt-5 text-fg-muted">
             We haven&apos;t received confirmation from the payment provider yet. It usually takes a few seconds; this
-            page checks again automatically. If the payment didn&apos;t go through, you can try again from the payment page.
+            page checks again automatically. If the payment didn&apos;t go through, you can try again from the payment{" "}
+            {outcome.invoice ? "page" : "link in your invoice email"}.
           </p>
-          <Details invoice={outcome.invoice} />
+          {outcome.invoice && <Details invoice={outcome.invoice} />}
           <div className="mt-8 flex flex-wrap gap-3">
-            {outcome.invoice.payment?.url && (
+            {outcome.invoice?.payment?.url && (
               <a href={outcome.invoice.payment.url} className={primary}>
                 Open payment page
               </a>
@@ -245,13 +195,13 @@ export default async function PayCompletePage({ searchParams }: PageProps<"/pay/
   const params = await searchParams;
   const ref = first(params.ref) ?? first(params.reference);
   const token = first(params.t);
-  const outcome = await check(ref, token);
+  const outcome = await paymentStatus(ref, token, await clientKey());
   const selfHref = `/pay/complete?${new URLSearchParams({ ref: ref ?? "", ...(token ? { t: token } : {}) })}`;
 
   return (
     <section className="container-x pb-24 pt-32">
       <div className="mx-auto max-w-xl rounded-[var(--radius-lg)] border border-line bg-surface/80 p-8 backdrop-blur-md sm:p-10">
-        <Body outcome={outcome} mockEmail={isMockEmail()} selfHref={selfHref} />
+        <Body outcome={outcome} showOutbox={isMockEmail() && outboxIsPublic()} selfHref={selfHref} />
       </div>
     </section>
   );

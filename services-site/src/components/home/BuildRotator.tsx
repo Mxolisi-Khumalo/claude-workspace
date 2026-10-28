@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
+import { isMotionPaused } from "@/hooks/useMotionPaused";
 
 gsap.registerPlugin(ScrambleTextPlugin, useGSAP);
 
@@ -11,8 +12,10 @@ const ITEMS = ["websites", "web apps", "cloud APIs", "AI assistants", "PDF workf
 
 /**
  * "I build ___" with the blank decoding through the services. Pauses while
- * hovered, off-screen or in a background tab; static for reduced motion.
- * Screen readers get the full sentence once.
+ * hovered, while keyboard focus is in the hero, after a tap (tap again to
+ * resume), off-screen, in a background tab or when the site-wide "Pause
+ * animations" switch is on; static for reduced motion. Screen readers get
+ * the full sentence once.
  */
 export function BuildRotator({ className }: { className?: string }) {
   const root = useRef<HTMLParagraphElement>(null);
@@ -27,9 +30,11 @@ export function BuildRotator({ className }: { className?: string }) {
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         let i = 0;
         let hovering = false;
+        let focused = false;
+        let held = false;
         let visible = true;
         const next = () => {
-          if (hovering || !visible || document.hidden) return;
+          if (hovering || focused || held || !visible || document.hidden || isMotionPaused()) return;
           i = (i + 1) % ITEMS.length;
           gsap.to(el, {
             duration: 1,
@@ -40,15 +45,31 @@ export function BuildRotator({ className }: { className?: string }) {
         const id = window.setInterval(next, 2800);
         const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
         io.observe(host);
-        const enter = () => (hovering = true);
+        const enter = (e: PointerEvent) => (hovering = e.pointerType !== "touch");
         const leave = () => (hovering = false);
+        // Touch has no hover: a tap toggles the pause instead.
+        const tap = (e: PointerEvent) => {
+          if (e.pointerType === "touch") held = !held;
+        };
+        // The rotator itself isn't focusable, so hold it while focus is anywhere in its section.
+        const region = host.closest("section") ?? host;
+        const focusIn = () => (focused = true);
+        const focusOut = (e: FocusEvent) => {
+          if (!region.contains(e.relatedTarget as Node | null)) focused = false;
+        };
         host.addEventListener("pointerenter", enter);
         host.addEventListener("pointerleave", leave);
+        host.addEventListener("pointerdown", tap);
+        region.addEventListener("focusin", focusIn);
+        region.addEventListener("focusout", focusOut);
         return () => {
           window.clearInterval(id);
           io.disconnect();
           host.removeEventListener("pointerenter", enter);
           host.removeEventListener("pointerleave", leave);
+          host.removeEventListener("pointerdown", tap);
+          region.removeEventListener("focusin", focusIn);
+          region.removeEventListener("focusout", focusOut);
           el.textContent = ITEMS[0];
         };
       });

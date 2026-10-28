@@ -142,11 +142,17 @@ function describeAction(action: ChatAction): string | null {
   }
 }
 
-export async function sendChat(input: { message?: string; action?: ChatAction; context?: ChatRequest["context"] }) {
+/**
+ * Sends a message or card action and streams the reply into the store.
+ * Resolves `false` when nothing was sent or the server didn't accept it
+ * (network error, non-2xx, or an `error` stream event), so cards can undo
+ * their optimistic "done" state and let the visitor try again.
+ */
+export async function sendChat(input: { message?: string; action?: ChatAction; context?: ChatRequest["context"] }): Promise<boolean> {
   hydrate();
-  if (state.streaming) return;
+  if (state.streaming) return false;
   const text = input.message?.trim();
-  if (!text && !input.action) return;
+  if (!text && !input.action) return false;
 
   const echo = text ?? (input.action ? describeAction(input.action) : null);
   const userMsg: DisplayMessage | null = echo ? { id: crypto.randomUUID(), role: "user", text: echo, cards: [] } : null;
@@ -173,6 +179,7 @@ export async function sendChat(input: { message?: string; action?: ChatAction; c
   };
 
   let happy = false;
+  let ok = true;
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -212,6 +219,7 @@ export async function sendChat(input: { message?: string; action?: ChatAction; c
             updateMessage(reply.id, (m) => ({ ...m, cards: [...m.cards, event.card] }));
             break;
           case "error":
+            ok = false;
             set({ error: event.message });
             break;
           case "done":
@@ -220,6 +228,7 @@ export async function sendChat(input: { message?: string; action?: ChatAction; c
       }
     }
   } catch (err) {
+    ok = false;
     set({ error: err instanceof Error ? err.message : "Something went wrong." });
   } finally {
     updateMessage(reply.id, (m) => ({ ...m, pending: false }));
@@ -231,6 +240,7 @@ export async function sendChat(input: { message?: string; action?: ChatAction; c
     set({ streaming: false, tool: undefined });
     setMood(happy ? "happy" : "idle", happy ? 2600 : undefined);
   }
+  return ok;
 }
 
 /* ------------------------------------------------------------------ */
