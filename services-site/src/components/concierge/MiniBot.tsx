@@ -76,7 +76,7 @@ export function MiniBot({ mood = "idle", size = 40, className }: { mood?: BotMoo
         style={{ top: -size * 0.16, width: size * 0.14, height: size * 0.14, boxShadow: "0 0 8px currentColor" }}
       />
       <div
-        className="grid h-full w-full place-items-center rounded-[32%] border border-white/10 bg-gradient-to-b from-[#232a36] to-[#12161d] shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]"
+        className="grid h-full w-full place-items-center rounded-[32%] border border-line-strong bg-gradient-to-b from-[var(--bot-shell-from)] to-[var(--bot-shell-to)] shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]"
       >
         <div className="grid h-[52%] w-[74%] place-items-center rounded-[40%] bg-black">
           <div ref={eyes} className="flex gap-[18%]" style={{ width: "70%", justifyContent: "center" }}>

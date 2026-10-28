@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import { openConcierge } from "@/lib/chat/concierge-store";
 import { ScrambleLabel } from "@/components/ui/ScrambleLabel";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const LINKS = [
   { href: "/#services", label: "Services", n: "01" },
@@ -83,6 +84,7 @@ export function Nav() {
         </ul>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle className="hidden w-10 justify-center px-0 sm:inline-flex" />
           <Magnetic>
             <button
               type="button"
@@ -135,6 +137,7 @@ export function Nav() {
             </li>
           ))}
           <li className="pt-6">
+            <ThemeToggle showLabel className="mb-3 w-full justify-center" />
             <button
               type="button"
               onClick={() => {
