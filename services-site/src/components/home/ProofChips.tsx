@@ -23,7 +23,7 @@ const CHIPS = [
   },
   {
     value: "115+",
-    label: "developers mentored",
+    label: "students mentored",
     meta: "WeThinkCode_",
     href: "/services/mentoring",
     color: "var(--violet)",

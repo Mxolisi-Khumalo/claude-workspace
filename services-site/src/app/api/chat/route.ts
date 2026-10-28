@@ -4,7 +4,6 @@ import type { ChatRequest, ChatStreamEvent } from "@/lib/chat/types";
 import { ChatInputError, handleChat } from "@/lib/chat/server/engine";
 import { rateLimit } from "@/lib/chat/server/rate-limit";
 
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const Body = z.object({

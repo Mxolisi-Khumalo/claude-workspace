@@ -166,20 +166,20 @@ export const services: Service[] = [
     ],
     evidence: [
       {
-        project: "DeskSign — PDF e-signature app",
-        repoUrl: `${GH}/DeskSign-App`,
-        proofPoint:
-          "An Angular + TypeScript app where users upload a PDF, drag signature and form fields onto any page, sign by drawing, typing or uploading a PNG, and download a flattened signed PDF — with undo/redo and guided signing.",
-        fileRef: "DeskSign-App/src/app/pages/document-preview/document-preview.ts",
-        image: "/images/work/desksign.webp",
-      },
-      {
         project: "Self-Storage Platform",
         repoUrl: `${GH}/Self-Storage-Platform`,
         proofPoint:
           "A booking platform (team capstone) where customers browse units by city and reserve a date range; the booking endpoint prices every reservation on the server from the unit record.",
         fileRef: "Self-Storage-Platform/src/storage/book.py",
         image: "/images/work/self-storage.webp",
+      },
+      {
+        project: "DeskSign — PDF e-signature app",
+        repoUrl: `${GH}/DeskSign-App`,
+        proofPoint:
+          "An Angular + TypeScript app where users upload a PDF, drag signature and form fields onto any page, sign by drawing, typing or uploading a PNG, and download a flattened signed PDF — with undo/redo and guided signing.",
+        fileRef: "DeskSign-App/src/app/pages/document-preview/document-preview.ts",
+        image: "/images/work/desksign.webp",
       },
       {
         project: "Student Management System",

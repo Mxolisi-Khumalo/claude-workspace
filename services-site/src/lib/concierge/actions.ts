@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getService, services } from "@/content";
+import { getService, services, startingPrice } from "@/content";
 import type { ChatCard, ContactDetails, Currency } from "@/lib/chat/types";
 import { createHash, randomInt } from "node:crypto";
 import {
@@ -245,8 +245,8 @@ export function recommendServices(slugs: string[]): ActionResult {
           slug: s.slug,
           title: s.title,
           tagline: s.tagline,
-          fromZar: Math.min(...s.packages.map((p) => p.priceFromZar)),
-          fromUsd: Math.min(...s.packages.map((p) => p.priceFromUsd)),
+          fromZar: startingPrice(s).zar,
+          fromUsd: startingPrice(s).usd,
         })),
       },
     ],

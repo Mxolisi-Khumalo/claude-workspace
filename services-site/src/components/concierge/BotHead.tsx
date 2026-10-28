@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, RoundedBox } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { ensurePointerTracking, pointer } from "@/hooks/usePointer";
 
@@ -25,10 +25,8 @@ function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: R
   const group = useRef<THREE.Group>(null);
   const pupil = useRef<THREE.Mesh>(null);
   const happy = useRef<THREE.Mesh>(null);
-  const mat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: GREEN, emissive: GREEN, emissiveIntensity: 2.4, toneMapped: false }),
-    [],
-  );
+  const pupilMat = useRef<THREE.MeshStandardMaterial>(null);
+  const happyMat = useRef<THREE.MeshStandardMaterial>(null);
 
   useFrame((state, dt) => {
     if (!group.current || !pupil.current || !happy.current) return;
@@ -46,17 +44,22 @@ function Eye({ side, mood, look, blink }: { side: -1 | 1; mood: BotMood; look: R
     pupil.current.scale.y = THREE.MathUtils.damp(pupil.current.scale.y, open * (1 - blink.current * 0.92), 30, dt);
 
     const target = mood === "thinking" ? VIOLET : mood === "happy" ? AMBER : GREEN;
-    mat.color.lerp(target, 1 - Math.exp(-6 * dt));
-    mat.emissive.copy(mat.color);
+    for (const m of [pupilMat.current, happyMat.current]) {
+      if (!m) continue;
+      m.color.lerp(target, 1 - Math.exp(-6 * dt));
+      m.emissive.copy(m.color);
+    }
   });
 
   return (
     <group ref={group} position={[side * 0.36, 0.04, 0.62]}>
-      <mesh ref={pupil} material={mat}>
+      <mesh ref={pupil}>
         <capsuleGeometry args={[0.085, 0.16, 8, 16]} />
+        <meshStandardMaterial ref={pupilMat} color={GREEN} emissive={GREEN} emissiveIntensity={2.4} toneMapped={false} />
       </mesh>
-      <mesh ref={happy} material={mat} rotation={[0, 0, 0]} visible={false}>
+      <mesh ref={happy} visible={false}>
         <torusGeometry args={[0.11, 0.035, 12, 32, Math.PI]} />
+        <meshStandardMaterial ref={happyMat} color={GREEN} emissive={GREEN} emissiveIntensity={2.4} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -68,10 +71,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
   const look = useRef(new THREE.Vector2());
   const blink = useRef(0);
   const nextBlink = useRef(2);
-  const tipMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: GREEN, emissive: GREEN, emissiveIntensity: 3, toneMapped: false }),
-    [],
-  );
+  const tipMat = useRef<THREE.MeshStandardMaterial>(null);
 
   useFrame((state, dt) => {
     const g = root.current;
@@ -113,10 +113,13 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
 
     // Antenna pulses faster while thinking.
     const speed = mood === "thinking" ? 8 : 2;
-    tipMat.emissiveIntensity = 2 + Math.sin(t * speed) * 1.2;
-    const target = mood === "thinking" ? VIOLET : mood === "happy" ? AMBER : GREEN;
-    tipMat.color.lerp(target, 1 - Math.exp(-6 * dt));
-    tipMat.emissive.copy(tipMat.color);
+    const tip = tipMat.current;
+    if (tip) {
+      tip.emissiveIntensity = 2 + Math.sin(t * speed) * 1.2;
+      const target = mood === "thinking" ? VIOLET : mood === "happy" ? AMBER : GREEN;
+      tip.color.lerp(target, 1 - Math.exp(-6 * dt));
+      tip.emissive.copy(tip.color);
+    }
     if (antennaTip.current) antennaTip.current.scale.setScalar(mood === "listening" ? 1.25 : 1);
   });
 
@@ -157,8 +160,9 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
         <cylinderGeometry args={[0.025, 0.035, 0.32, 12]} />
         <meshStandardMaterial color="#2b3341" metalness={0.7} roughness={0.3} />
       </mesh>
-      <mesh ref={antennaTip} position={[0, 0.98, 0]} material={tipMat}>
+      <mesh ref={antennaTip} position={[0, 0.98, 0]}>
         <sphereGeometry args={[0.08, 24, 24]} />
+        <meshStandardMaterial ref={tipMat} color={GREEN} emissive={GREEN} emissiveIntensity={3} toneMapped={false} />
       </mesh>
     </group>
   );

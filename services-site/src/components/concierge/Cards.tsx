@@ -166,7 +166,8 @@ function VerifyEmail({ card, active }: { card: Extract<ChatCard, { kind: "verify
 
 function Confirm({ card, active }: { card: Extract<ChatCard, { kind: "confirm" }>; active: boolean }) {
   const [choice, setChoice] = useState<"confirmed" | "cancelled" | null>(null);
-  const expired = new Date(card.expiresAt).getTime() < Date.now();
+  const [mountedAt] = useState(() => Date.now());
+  const expired = new Date(card.expiresAt).getTime() < mountedAt;
   return (
     <div className={clsx(shell, "border-accent/40 shadow-[0_0_40px_-20px_var(--accent)]")}>
       <Header eyebrow="Please confirm" title={card.title} />

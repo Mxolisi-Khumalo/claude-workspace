@@ -41,8 +41,9 @@ interface DemoState {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function say(emit: Emit, text: string) {
-  // Stream in small word groups so the UI (and the robot) feel alive.
-  const parts = text.match(/\S+\s*/g) ?? [text];
+  // Stream in small word groups so the UI (and the robot) feel alive. The
+  // trailing break separates consecutive messages within one reply.
+  const parts = `${text}\n\n`.match(/\S+\s*/g) ?? [text];
   for (let i = 0; i < parts.length; i += 3) {
     emit({ type: "text", delta: parts.slice(i, i + 3).join("") });
     await sleep(28);

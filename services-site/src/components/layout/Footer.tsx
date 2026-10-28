@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
 import { profile, services } from "@/content";
 import { openConcierge } from "@/lib/chat/concierge-store";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { RevealText } from "@/components/ui/RevealText";
 
+const noop = () => () => {};
+
+/** A static server value keeps prerendering deterministic; the browser shows the real year. */
+function useYear() {
+  return useSyncExternalStore(noop, () => new Date().getFullYear(), () => 2026);
+}
+
 export function Footer() {
-  const year = new Date().getFullYear();
+  const year = useYear();
   return (
     <footer className="relative mt-32 overflow-hidden border-t border-line">
       <div className="container-x py-24 md:py-32">
