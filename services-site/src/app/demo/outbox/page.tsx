@@ -36,7 +36,7 @@ export default async function OutboxPage() {
   return (
     <section className="container-x pb-24 pt-32">
       <div className="mx-auto max-w-4xl">
-        <p className="rounded-full border border-amber/40 bg-amber/10 px-4 py-2 text-center font-mono text-xs text-amber">
+        <p className="rounded-full border border-amber/40 bg-amber/10 px-4 py-2 text-center font-mono text-xs text-amber light:rounded-none light:border-0 light:bg-tint-olive light:text-black">
           Demo mode — emails are captured here instead of being sent
         </p>
         <p className="eyebrow mt-10">Mock email provider</p>
@@ -56,13 +56,13 @@ export default async function OutboxPage() {
               const links = linksIn(e.text);
               return (
                 <li key={e.id}>
-                  <details open={i === 0} className="group rounded-[var(--radius)] border border-line bg-surface/80 backdrop-blur-md">
+                  <details open={i === 0} className="group rounded-[var(--radius)] border border-line bg-surface/80 backdrop-blur-md light:rounded-none light:bg-surface light:backdrop-blur-none">
                     <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-4">
                       <span className="font-mono text-xs text-fg-subtle">{fmt.format(new Date(e.createdAt))}</span>
                       <span className="min-w-0 flex-1 truncate font-semibold text-fg">{e.subject}</span>
                       <span className="font-mono text-xs text-fg-muted">to {e.to.join(", ")}</span>
                       {e.attachments.map((name) => (
-                        <span key={name} className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[11px] text-sky">
+                        <span key={name} className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[11px] text-sky light:rounded-[4px]">
                           {name}
                         </span>
                       ))}

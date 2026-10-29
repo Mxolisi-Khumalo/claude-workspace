@@ -46,7 +46,7 @@ function Details({ invoice }: { invoice: InvoiceRecord }) {
   if (charged) rows.push(["Charged", `${formatMoney(charged.amount, charged.currency)} · rate ${charged.rate}`]);
   if (invoice.paidAt) rows.push(["Paid", fmtDate(invoice.paidAt)]);
   return (
-    <dl className="mt-8 divide-y divide-line rounded-[var(--radius)] border border-line bg-bg/60">
+    <dl className="mt-8 divide-y divide-line rounded-[var(--radius)] border border-line bg-bg/60 light:rounded-none">
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-baseline justify-between gap-6 px-4 py-3 text-sm">
           <dt className="eyebrow">{label}</dt>
@@ -57,15 +57,16 @@ function Details({ invoice }: { invoice: InvoiceRecord }) {
   );
 }
 
+// Pills in dark; Universe's square primary and 6px secondary buttons in light.
 const primary =
-  "inline-flex items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)]";
+  "inline-flex items-center justify-center rounded-[var(--radius-button)] bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink transition-[box-shadow,background-color] hover:shadow-[var(--glow-accent)] light:hover:bg-accent-hover light:hover:shadow-none";
 const outline =
-  "inline-flex items-center justify-center rounded-full border border-line-strong px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-accent hover:text-accent";
+  "inline-flex items-center justify-center rounded-full border border-line-strong px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-accent hover:text-accent light:rounded-[6px] light:bg-fg/5 light:hover:border-fg/60 light:hover:bg-fg/[0.08] light:hover:text-fg";
 
 function Icon({ tone }: { tone: "ok" | "wait" | "bad" }) {
   if (tone === "wait") {
     return (
-      <div className="flex size-14 items-center justify-center rounded-full border border-amber/40 bg-amber/10">
+      <div className="flex size-14 items-center justify-center rounded-full border border-amber/40 bg-amber/10 light:rounded-none">
         <span className="size-6 animate-spin rounded-full border-2 border-amber/30 border-t-amber" />
       </div>
     );
@@ -74,8 +75,8 @@ function Icon({ tone }: { tone: "ok" | "wait" | "bad" }) {
     <div
       className={
         tone === "ok"
-          ? "flex size-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[var(--glow-accent)]"
-          : "flex size-14 items-center justify-center rounded-full border border-pink/40 bg-pink/10 text-pink"
+          ? "flex size-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[var(--glow-accent)] light:rounded-none light:shadow-none"
+          : "flex size-14 items-center justify-center rounded-full border border-pink/40 bg-pink/10 text-pink light:rounded-none"
       }
     >
       <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
@@ -200,7 +201,7 @@ export default async function PayCompletePage({ searchParams }: PageProps<"/pay/
 
   return (
     <section className="container-x pb-24 pt-32">
-      <div className="mx-auto max-w-xl rounded-[var(--radius-lg)] border border-line bg-surface/80 p-8 backdrop-blur-md sm:p-10">
+      <div className="mx-auto max-w-xl rounded-[var(--radius-lg)] border border-line bg-surface/80 p-8 backdrop-blur-md sm:p-10 light:rounded-none light:bg-surface light:backdrop-blur-none">
         <Body outcome={outcome} showOutbox={isMockEmail() && outboxIsPublic()} selfHref={selfHref} />
       </div>
     </section>

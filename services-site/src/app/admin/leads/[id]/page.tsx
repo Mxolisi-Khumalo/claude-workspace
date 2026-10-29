@@ -33,7 +33,7 @@ export default async function AdminLeadPage({ params }: PageProps<"/admin/leads/
         actions={
           <a
             href={`/admin/leads/${encodeURIComponent(lead.id)}/export`}
-            className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)]"
+            className="rounded-[var(--radius-button)] bg-accent px-4 py-2 text-xs font-semibold text-accent-ink transition-[box-shadow,background-color] hover:shadow-[var(--glow-accent)] light:hover:bg-accent-hover light:hover:shadow-none"
           >
             Export JSON
           </a>

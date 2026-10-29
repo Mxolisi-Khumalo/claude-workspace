@@ -116,11 +116,11 @@ export function Cursor() {
             width: ringSize,
             height: ringSize,
             scale: pressed ? 0.85 : 1,
-            border: filled ? "none" : "1px solid rgb(255 255 255 / 0.45)",
+            border: filled ? "none" : "1px solid var(--cursor-ring)",
             background: filled
               ? "var(--accent)"
               : mode === "link"
-                ? "rgb(126 231 135 / 0.12)"
+                ? "color-mix(in srgb, var(--accent) 12%, transparent)"
                 : "transparent",
             color: "var(--accent-ink)",
             boxShadow: mode === "link" ? "var(--glow-accent)" : "none",

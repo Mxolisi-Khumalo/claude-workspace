@@ -30,7 +30,7 @@ function inline(text: string, keyPrefix: string): ReactNode[] {
     }
     if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
       return (
-        <code key={key} className="rounded bg-white/5 px-1 py-0.5 font-mono text-[0.85em] text-accent">
+        <code key={key} className="rounded bg-fg/5 px-1 py-0.5 font-mono text-[0.85em] text-accent light:rounded-none light:bg-fg/[0.06]">
           {part.slice(1, -1)}
         </code>
       );

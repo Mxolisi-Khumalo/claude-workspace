@@ -59,17 +59,17 @@ export default function ServicesIndexPage() {
         <ServiceIndexList rows={rows} />
       </section>
 
-      <section className="container-x py-24 md:py-32" aria-labelledby="strength-heading">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <section className="mkp-sec container-x py-24 md:py-32" aria-labelledby="strength-heading">
+        <div className="mkp-split grid gap-10 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <p className="eyebrow mb-5">
-              <span className="text-accent">{"//"}</span> Reading the badges
+              <span className="text-accent light:hidden">{"//"}</span> <span className="mkp-slug">Reading the badges</span>
             </p>
             <h2 id="strength-heading" className="display text-[clamp(2rem,4vw,3.5rem)]">
               How strong is the evidence?
             </h2>
           </div>
-          <Reveal as="ul" className="grid gap-4 lg:col-span-7 lg:col-start-6">
+          <Reveal as="ul" className="mkp-stack grid gap-4 lg:col-span-7 lg:col-start-6">
             {strengths.map((s) => (
               <li data-reveal key={s} className="mkp-card p-6 md:p-7">
                 <span className="mkp-card-edge" />
@@ -81,7 +81,7 @@ export default function ServicesIndexPage() {
         </div>
       </section>
 
-      <div className="container-x pb-8">
+      <div className="mkp-sec container-x pb-8 light:border-b light:border-line">
         <CtaBand
           eyebrow="// Not sure which you need?"
           title="Describe the problem. I'll map the service."

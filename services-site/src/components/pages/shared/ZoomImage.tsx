@@ -93,7 +93,7 @@ export function ZoomImage({
         data-cursor="view"
         data-cursor-label="Zoom"
         className={clsx(
-          "group/zoom relative block w-full overflow-hidden rounded-[var(--radius)] bg-surface text-left",
+          "group/zoom relative block w-full overflow-hidden rounded-[var(--radius)] bg-surface text-left light:rounded-none",
           className,
         )}
       >
@@ -111,7 +111,7 @@ export function ZoomImage({
         />
         <span
           aria-hidden
-          className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full border border-line-strong bg-bg/70 font-mono text-sm text-fg backdrop-blur transition-colors group-hover/zoom:border-accent group-hover/zoom:text-accent"
+          className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full border border-line-strong bg-bg/70 font-mono text-sm text-fg backdrop-blur transition-colors group-hover/zoom:border-accent group-hover/zoom:text-accent light:rounded-[6px] light:bg-surface light:backdrop-blur-none light:group-hover/zoom:border-fg/60 light:group-hover/zoom:text-fg"
         >
           ⤢
         </span>
@@ -126,7 +126,7 @@ export function ZoomImage({
             aria-modal="true"
             aria-labelledby={titleId}
             data-lenis-prevent
-            className="mkp-lightbox fixed inset-0 z-[90] flex flex-col bg-[rgb(4_5_8/0.9)] backdrop-blur-md"
+            className="mkp-lightbox fixed inset-0 z-[90] flex flex-col bg-[rgb(4_5_8/0.9)] backdrop-blur-md light:bg-[rgb(233_237_236/0.95)]"
             onClick={(e) => {
               if (e.target === e.currentTarget) close();
             }}
@@ -139,7 +139,7 @@ export function ZoomImage({
                 ref={closeBtn}
                 type="button"
                 onClick={close}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line-strong bg-surface/80 text-lg text-fg transition-colors hover:border-accent hover:text-accent"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line-strong bg-surface/80 text-lg text-fg transition-colors hover:border-accent hover:text-accent light:rounded-[6px] light:bg-fg/5 light:hover:border-fg/60 light:hover:bg-fg/[0.08] light:hover:text-fg"
                 aria-label="Close image preview"
               >
                 ✕
@@ -157,7 +157,7 @@ export function ZoomImage({
                 width={width}
                 height={height}
                 sizes="(min-width: 1024px) 85vw, 100vw"
-                className="h-auto max-h-[78dvh] w-auto max-w-full rounded-[var(--radius)] border border-line object-contain shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]"
+                className="h-auto max-h-[78dvh] w-auto max-w-full rounded-[var(--radius)] border border-line object-contain shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)] light:rounded-none light:border-line-strong light:shadow-[var(--shadow-panel)]"
               />
               {caption && (
                 <figcaption className="max-w-2xl text-center text-sm leading-relaxed text-fg-muted">{caption}</figcaption>

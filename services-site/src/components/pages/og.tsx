@@ -1,27 +1,31 @@
 /**
  * Shared Open Graph card (rendered by next/og's ImageResponse, i.e. Satori:
  * flexbox only, inline styles, default font).
+ *
+ * Social cards are rendered on the server without a theme, so they use the
+ * default light theme's look (GitHub Universe 2026): a pale green-grey paper
+ * canvas, black type at regular weight, GitHub green, a black utility strip
+ * with neon text, and the page ruled into cells by 1px lines.
  */
 export const OG_SIZE = { width: 1200, height: 630 };
 
 const C = {
-  bg: "#07080b",
-  fg: "#f0f3f6",
-  muted: "#9aa4b2",
-  subtle: "#5f6b7a",
-  accent: "#7ee787",
-  ink: "#04130a",
-  violet: "#a371f7",
-  amber: "#ffa657",
-  sky: "#79c0ff",
-  pink: "#ff7eb6",
+  bg: "#e9edec",
+  surface: "#f9fbf9",
+  line: "#c6cec8",
+  lineStrong: "#b6bfb8",
+  fg: "#000000",
+  muted: "#58635b",
+  accent: "#077a28",
+  green: "#08872b",
+  neon: "#5fed83",
+  violet: "#583af7",
+  amber: "#6e5d00",
+  sky: "#0055d5",
+  pink: "#a8226a",
 };
 
-function rgba(hex: string, a: number) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
-}
-
+/** Per-service accents, as in the light theme (all ≥ 4.5:1 on the paper). */
 export const OG_ACCENTS: Record<string, string> = {
   accent: C.accent,
   violet: C.violet,
@@ -29,6 +33,8 @@ export const OG_ACCENTS: Record<string, string> = {
   sky: C.sky,
   pink: C.pink,
 };
+
+const RAIL = 40;
 
 export function OgCard({
   eyebrow,
@@ -50,118 +56,138 @@ export function OgCard({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "64px 72px",
         background: C.bg,
         color: C.fg,
         position: "relative",
       }}
     >
-      {/* grid */}
+      {/* black utility strip */}
       <div
         style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
           display: "flex",
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 64,
+          padding: `0 ${RAIL}px`,
+          background: "#000",
+          color: "#fff",
+          fontSize: 24,
         }}
-      />
-      {/* colour wash */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          backgroundImage: `linear-gradient(125deg, ${rgba(C.bg, 0)} 0%, ${rgba(C.bg, 0)} 48%, ${rgba(accent, 0.28)} 100%)`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          backgroundImage: `linear-gradient(20deg, ${rgba(C.violet, 0.16)} 0%, ${rgba(C.violet, 0)} 38%)`,
-        }}
-      />
-      {/* accent rule */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 6, display: "flex", background: accent }} />
-
-      {/* header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 14,
-            background: C.accent,
-            color: C.ink,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 24,
-            letterSpacing: -1,
-          }}
-        >
-          MK
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              background: C.green,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              letterSpacing: -0.5,
+            }}
+          >
+            MK
+          </div>
+          <div style={{ display: "flex", letterSpacing: -0.3 }}>mxolisi.dev</div>
         </div>
-        <div style={{ display: "flex", fontSize: 32, letterSpacing: -0.5 }}>mxolisi.dev</div>
-      </div>
-
-      {/* body */}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", fontSize: 22, letterSpacing: 4, color: accent, textTransform: "uppercase" }}>
-          {eyebrow}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            marginTop: 22,
-            fontSize: title.length > 32 ? 72 : 88,
-            lineHeight: 1.02,
-            letterSpacing: -3,
-            maxWidth: 1000,
-          }}
-        >
-          {title}
-        </div>
-        <div style={{ display: "flex", marginTop: 26, fontSize: 28, lineHeight: 1.35, color: C.muted, maxWidth: 920 }}>
-          {subtitle}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 18, color: C.neon }}>
+          <div style={{ width: 10, height: 10, background: C.neon, display: "flex" }} />
+          Johannesburg · ZA
         </div>
       </div>
 
-      {/* footer */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", gap: 12 }}>
+      {/* ruled body: rails left and right, a cell per row */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          margin: `0 ${RAIL}px`,
+          borderLeft: `1px solid ${C.lineStrong}`,
+          borderRight: `1px solid ${C.lineStrong}`,
+        }}
+      >
+        <div style={{ flex: 1, display: "flex", position: "relative" }}>
+          {/* a graph-paper cell in the top-right corner */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: 312,
+              height: 96,
+              display: "flex",
+              backgroundImage:
+                "linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+              borderLeft: `1px solid ${C.line}`,
+              borderBottom: `1px solid ${C.line}`,
+            }}
+          />
+          {/* accent bar */}
+          <div style={{ width: 12, display: "flex", background: accent }} />
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              padding: "40px 56px 44px 44px",
+            }}
+          >
+            <div style={{ display: "flex", fontSize: 22, color: accent }}>{eyebrow}</div>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 18,
+                fontSize: title.length > 32 ? 68 : 84,
+                lineHeight: 1.04,
+                letterSpacing: -2.5,
+                maxWidth: 900,
+              }}
+            >
+              {title}
+            </div>
+            <div style={{ display: "flex", marginTop: 22, fontSize: 26, lineHeight: 1.35, color: C.muted, maxWidth: 820 }}>
+              {subtitle}
+            </div>
+          </div>
+        </div>
+
+        {/* footer row of cells */}
+        <div style={{ display: "flex", height: 72, borderTop: `1px solid ${C.lineStrong}`, background: C.surface }}>
           {chips.slice(0, 4).map((c) => (
             <div
               key={c}
               style={{
                 display: "flex",
-                padding: "8px 16px",
-                borderRadius: 9999,
-                border: "1px solid rgba(255,255,255,0.16)",
-                fontSize: 18,
-                color: C.muted,
+                alignItems: "center",
+                padding: "0 28px",
+                borderRight: `1px solid ${C.line}`,
+                fontSize: 20,
+                color: C.fg,
               }}
             >
               {c}
             </div>
           ))}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 18, color: C.subtle }}>
-          <div style={{ width: 10, height: 10, borderRadius: 9999, background: C.accent, display: "flex" }} />
-          Johannesburg · ZA
+          <div style={{ flex: 1, display: "flex" }} />
+          {/* decorative green key, like Universe's primary cell */}
+          <div
+            style={{
+              width: 72,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: C.green,
+              color: "#fff",
+              fontSize: 26,
+            }}
+          >
+            ↗
+          </div>
         </div>
       </div>
     </div>

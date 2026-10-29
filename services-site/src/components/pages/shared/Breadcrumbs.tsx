@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Breadcrumbs({ items }: { items: { href?: string; label: string }[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="font-mono text-xs text-fg-subtle">
+    <nav aria-label="Breadcrumb" className="font-mono text-xs text-fg-subtle light:text-[13px] light:lowercase">
       <ol className="flex flex-wrap items-center gap-2">
         {items.map((item, i) => (
           <li key={item.label} className="flex items-center gap-2">

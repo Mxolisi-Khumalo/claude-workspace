@@ -62,25 +62,26 @@ export function Preloader() {
       style={{ clipPath: "inset(0 0 0% 0)" }}
       aria-hidden
     >
-      <div className="pl-inner w-[min(420px,80vw)] font-mono text-sm">
-        <p className="mb-4 text-fg-muted">
+      {/* Light: black mono build lines in a white ruled cell on paper, with a green progress bar. */}
+      <div className="pl-inner w-[min(420px,80vw)] font-mono text-sm light:w-[min(460px,86vw)] light:border light:border-line light:bg-surface light:[font-variant-ligatures:none]">
+        <p className="mb-4 text-fg-muted light:mb-0 light:border-b light:border-line light:px-5 light:py-3 light:text-fg">
           <span className="text-accent">$</span> npm run build <span className="text-fg-subtle">--target=you</span>
         </p>
-        <ul className="mb-8 space-y-1 text-fg-subtle">
+        <ul className="mb-8 space-y-1 text-fg-subtle light:mb-0 light:px-5 light:py-4 light:text-fg">
           {LINES.map((l, i) => (
             <li key={l} className="pl-line">
-              <span className={i === LINES.length - 1 ? "text-accent" : "text-violet"}>✓</span> {l}
+              <span className={i === LINES.length - 1 ? "text-accent" : "text-violet light:text-accent"}>✓</span> {l}
             </li>
           ))}
         </ul>
-        <div className="flex items-end justify-between">
-          <span className="display text-6xl text-fg" ref={count}>
+        <div className="flex items-end justify-between light:border-t light:border-line light:px-5 light:pt-4">
+          <span className="display text-6xl text-fg light:font-mono light:text-5xl light:font-normal light:tracking-tight" ref={count}>
             000
           </span>
           <span className="text-fg-subtle">%</span>
         </div>
-        <div className="mt-3 h-px w-full bg-line">
-          <div className="pl-bar h-px origin-left scale-x-0 bg-accent" />
+        <div className="mt-3 h-px w-full bg-line light:mt-4 light:h-1.5">
+          <div className="pl-bar h-px origin-left scale-x-0 bg-accent light:h-full" />
         </div>
       </div>
     </div>

@@ -1,13 +1,85 @@
 @import "tailwindcss";
 
+/* Theme variants keyed to <html data-theme> (not the OS setting): `light:` / `dark:`. */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /*
- * Design tokens.
- * Dark "developer canvas" inspired by GitHub's Primer dark palette and the
- * GitHub Universe event aesthetic: near-black surfaces, neon green / violet /
- * amber / sky accents, Mona Sans + Hubot Sans display type, mono labels.
- * Tune the brand here — every component reads from these variables.
+ * Design tokens, in two themes switched by `data-theme` on <html> (set before
+ * first paint by the inline script in layout.tsx; see src/hooks/useTheme.ts).
+ *
+ * light (default) — modelled on GitHub Universe 2026: a pale green-grey paper
+ *   canvas (#e9edec), black ink, GitHub green (#08872b family) for primary
+ *   actions with square corners, green-tinted neutrals, visible 1px grid
+ *   rules, Mona Sans at regular display weights and Mona Sans Mono labels.
+ * dark — the original "developer canvas": near-black surfaces with neon
+ *   green / violet / amber / sky accents and heavy, wide display type.
+ *
+ * Every component reads these variables; tune the brand here.
  */
-:root {
+:root,
+[data-theme="light"] {
+  --bg: #e9edec;
+  --bg-elevated: #f2f5f3;
+  --surface: #f9fbf9;
+  --surface-2: #e4ebe6;
+  --line: #d2d9d4;
+  --line-strong: #b6bfb8;
+
+  --fg: #000000;
+  --fg-muted: #58635b;
+  --fg-subtle: #5b665e; /* ≥ 4.9:1 on every light surface */
+
+  --accent: #077a28; /* GitHub green, darkened a touch so small text passes 4.5:1 */
+  --accent-ink: #ffffff;
+  --accent-bright: #5fed83; /* neon green for decoration on dark strips */
+  --violet: #583af7;
+  --amber: #6e5d00;
+  --sky: #0055d5;
+  --pink: #a8226a;
+
+  /* Saturated fills for decorative bands and blocks (never body text). */
+  --tint-neon: #66ff8d;
+  --tint-lilac: #ae85ff;
+  --tint-olive: #bba00a;
+  --tint-pink: #f73678;
+  --tint-orange: #c05200;
+
+  --glow-accent: 0 0 0 1px rgb(7 122 40 / 0.4), 0 12px 32px -14px rgb(7 122 40 / 0.55);
+  --glow-violet: 0 0 0 1px rgb(88 58 247 / 0.35), 0 12px 32px -14px rgb(88 58 247 / 0.5);
+  --shadow-panel: 0 1px 0 rgb(0 0 0 / 0.04), 0 24px 60px -32px rgb(25 31 27 / 0.35);
+
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  /* Primary buttons are square in light, pills in dark. */
+  --radius-button: 0px;
+
+  --display-weight: 460;
+  --display-stretch: 100%;
+  --display-tracking: -0.025em;
+  --display-leading: 1.02;
+  /* The hero headline stays a heavy "wordmark" in both themes. */
+  --hero-weight: 800;
+  --hero-stretch: 112%;
+
+  /* Universe-style lowercase mono labels ("agenda/", "dev.connect()"); data-bearing
+     eyebrows (names, places, codes) opt out with `light:normal-case`. */
+  --eyebrow-transform: lowercase;
+  --eyebrow-tracking: 0;
+
+  --cursor-ring: rgb(0 0 0 / 0.55);
+  /* Hover fill for solid green buttons (light uses a darker green, not a glow). */
+  --accent-hover: #05661f;
+  --bot-shell-from: #ffffff;
+  --bot-shell-to: #d2d9d4;
+  --watermark: rgb(0 0 0 / 0.05);
+  --font-mono-active: var(--font-mona-mono);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
   --bg: #07080b;
   --bg-elevated: #0d1015;
   --surface: #12161d;
@@ -21,18 +93,48 @@
 
   --accent: #7ee787; /* neon green — primary */
   --accent-ink: #04130a;
+  --accent-bright: #7ee787;
   --violet: #a371f7;
   --amber: #ffa657;
   --sky: #79c0ff;
   --pink: #ff7eb6;
 
+  --tint-neon: #7ee787;
+  --tint-lilac: #a371f7;
+  --tint-olive: #ffa657;
+  --tint-pink: #ff7eb6;
+  --tint-orange: #ffa657;
+
   --glow-accent: 0 0 0 1px rgb(126 231 135 / 0.35), 0 0 32px -4px rgb(126 231 135 / 0.45);
   --glow-violet: 0 0 0 1px rgb(163 113 247 / 0.35), 0 0 32px -4px rgb(163 113 247 / 0.45);
+  --shadow-panel: 0 40px 120px -40px rgb(0 0 0 / 0.8);
 
   --radius-sm: 8px;
   --radius: 14px;
   --radius-lg: 24px;
+  --radius-button: 9999px;
 
+  --display-weight: 800;
+  --display-stretch: 125%;
+  --display-tracking: -0.035em;
+  --display-leading: 0.92;
+  --hero-weight: 800;
+  --hero-stretch: 125%;
+
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.14em;
+
+  --cursor-ring: rgb(255 255 255 / 0.45);
+  --accent-hover: #9af0a2;
+  --bot-shell-from: #232a36;
+  --bot-shell-to: #12161d;
+  --watermark: rgb(255 255 255 / 0.035);
+  --font-mono-active: var(--font-jetbrains);
+
+  color-scheme: dark;
+}
+
+:root {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
@@ -53,6 +155,13 @@
   --color-fg-subtle: var(--fg-subtle);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-hover: var(--accent-hover);
+  --color-tint-neon: var(--tint-neon);
+  --color-tint-lilac: var(--tint-lilac);
+  --color-tint-olive: var(--tint-olive);
+  --color-tint-pink: var(--tint-pink);
+  --color-tint-orange: var(--tint-orange);
   --color-violet: var(--violet);
   --color-amber: var(--amber);
   --color-sky: var(--sky);
@@ -60,7 +169,7 @@
 
   --font-sans: var(--font-mona), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-hubot), var(--font-mona), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+  --font-mono: var(--font-mono-active), ui-monospace, SFMono-Regular, monospace;
 
   --ease-out-expo: var(--ease-out);
 }
@@ -68,7 +177,6 @@
 html {
   background: var(--bg);
   color: var(--fg);
-  color-scheme: dark;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -88,10 +196,19 @@ body {
   color: var(--accent-ink);
 }
 
+/* No border-radius here: it used to reshape the focused element itself (pills turned
+   into 4px rectangles in dark, square cells grew rounded corners in light). Outlines
+   follow each element's own radius. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 4px;
+}
+/* Light: the nav is a row of full-height ruled cells, so an outset ring is clipped by
+   the viewport top and hidden under the neighbouring cell. Draw it inside the cell in
+   the cell's ink (black on paper, white on the green CTA). */
+[data-theme="light"] header nav :is(a, button):focus-visible {
+  outline-color: currentColor;
+  outline-offset: -4px;
 }
 
 /* Lenis smooth-scroll recommended styles */
@@ -126,15 +243,23 @@ html.has-custom-cursor * {
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 0.75rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: var(--eyebrow-tracking);
+    text-transform: var(--eyebrow-transform);
     color: var(--fg-muted);
   }
 
   .display {
     font-family: var(--font-display);
-    font-stretch: 125%;
-    font-weight: 800;
+    font-stretch: var(--display-stretch);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    line-height: var(--display-leading);
+  }
+
+  /* The hero headline: heavy and wide in both themes, like a wordmark. */
+  .display-hero {
+    font-weight: var(--hero-weight);
+    font-stretch: var(--hero-stretch);
     letter-spacing: -0.035em;
     line-height: 0.92;
   }
@@ -144,6 +269,11 @@ html.has-custom-cursor * {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* Light: solid GitHub green, like the green mark in the UNIVERSE'26 wordmark. */
+  [data-theme="light"] .text-gradient {
+    background: none;
+    color: var(--accent);
   }
 
   .grid-bg {
@@ -173,6 +303,67 @@ html.has-custom-cursor * {
   95% {
     transform: scaleY(0.1);
   }
+}
+
+/* Shown until (or instead of) the WebGL background. */
+.immersive-fallback {
+  background:
+    radial-gradient(60% 50% at 70% 0%, rgb(163 113 247 / 0.18), transparent 70%),
+    radial-gradient(50% 40% at 15% 10%, rgb(126 231 135 / 0.14), transparent 70%), var(--bg);
+}
+/* Light washes are never darker than the paper (see the shader's light branch). */
+[data-theme="light"] .immersive-fallback,
+:root:not([data-theme]) .immersive-fallback {
+  background:
+    radial-gradient(55% 45% at 75% 0%, rgb(240 235 255 / 0.7), transparent 70%),
+    radial-gradient(45% 40% at 15% 5%, rgb(204 247 214 / 0.6), transparent 70%), var(--bg);
+}
+
+/*
+ * Light theme "blueprint" rails (GitHub Universe's bordered cells): 1px rules
+ * down both edges of the content column — the outer edges of .container-x.
+ * Fixed between the background (-z-10) and the page, so panels, photos and
+ * filled cells cover them. Rendered once by the root layout; absent in dark.
+ */
+.blueprint-rails {
+  display: none;
+}
+[data-theme="light"] .blueprint-rails {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.blueprint-rails::before,
+.blueprint-rails::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+.blueprint-rails::before {
+  left: max(0px, calc((100% - var(--container)) / 2));
+}
+.blueprint-rails::after {
+  right: max(0px, calc((100% - var(--container)) / 2));
+}
+
+/* The open mobile menu covers the page; the floating "Ask Byte" launcher (z-60, above the
+   header) would otherwise sit on top of it and stay in the tab order. The menu has its own
+   "Start a project" button and its own theme switch. */
+html:has(button[aria-controls="mobile-menu"][aria-expanded="true"]) button[aria-controls="concierge-panel"] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Flip every surface at once when the theme changes (see setTheme). */
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
 }
 
 html[data-preloaded] .preloader {

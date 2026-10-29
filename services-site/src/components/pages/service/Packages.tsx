@@ -26,11 +26,11 @@ export function Packages({
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between light:-mx-[var(--gutter)] light:border-b light:border-line light:px-[var(--gutter)] light:py-5">
         <p className="text-sm text-fg-muted">
           “From” prices — your written quote confirms the final scope and price.
         </p>
-        <div role="group" aria-label="Currency" className="inline-flex w-fit rounded-full border border-line-strong bg-bg/60 p-1 backdrop-blur">
+        <div role="group" aria-label="Currency" className="inline-flex w-fit rounded-full border border-line-strong bg-bg/60 p-1 backdrop-blur light:rounded-[6px] light:bg-surface light:p-0 light:backdrop-blur-none">
           {(["ZAR", "USD"] as const).map((c) => (
             <button
               key={c}
@@ -38,8 +38,8 @@ export function Packages({
               aria-pressed={currency === c}
               onClick={() => setCurrency(c)}
               className={clsx(
-                "rounded-full px-4 py-1.5 font-mono text-xs font-semibold tracking-[0.1em] transition-colors duration-300",
-                currency === c ? "bg-fg text-bg" : "text-fg-muted hover:text-fg",
+                "rounded-full px-4 py-1.5 font-mono text-xs font-semibold tracking-[0.1em] transition-colors duration-300 light:rounded-[5px] light:px-5 light:py-2.5 light:text-[13px] light:tracking-normal",
+                currency === c ? "bg-fg text-bg light:bg-accent light:text-accent-ink" : "text-fg-muted hover:text-fg",
               )}
             >
               {c === "ZAR" ? "ZAR R" : "USD $"}
@@ -48,19 +48,19 @@ export function Packages({
         </div>
       </div>
 
-      <GlowGroup as="ul" className={clsx("mt-8 grid gap-5", gridCols[packages.length] ?? "md:grid-cols-2 xl:grid-cols-3")}>
+      <GlowGroup as="ul" className={clsx("mkp-cells mt-8 grid gap-5", gridCols[packages.length] ?? "md:grid-cols-2 xl:grid-cols-3")}>
         {packages.map((p, i) => {
           const amount = currency === "ZAR" ? p.priceFromZar : p.priceFromUsd;
           return (
-            <li key={p.name} className="mkp-card flex flex-col p-6 md:p-8">
+            <li key={p.name} className="mkp-card flex flex-col p-6 md:p-8 light:py-10 md:light:py-12">
               <span className="mkp-card-edge" />
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-mono text-xs uppercase tracking-[0.14em] text-[var(--glow)]">Package {pad(i + 1)}</p>
-                  <h3 className="mt-3 text-2xl font-semibold tracking-tight">{p.name}</h3>
+                  <p className="font-mono text-xs uppercase tracking-[0.14em] text-[var(--glow)] light:text-[13px] light:normal-case light:tracking-normal">Package {pad(i + 1)}</p>
+                  <h3 className="mt-3 text-2xl font-semibold tracking-tight light:text-3xl light:font-normal">{p.name}</h3>
                 </div>
                 {p.purchasable && (
-                  <span className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-accent">
+                  <span className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-accent light:rounded-none light:border-0 light:bg-tint-neon light:px-2 light:text-xs light:normal-case light:tracking-normal light:text-black">
                     Buy online
                   </span>
                 )}
@@ -74,7 +74,7 @@ export function Packages({
                   </span>
                 </span>
                 <span className="mt-2 flex items-center gap-2 font-mono text-xs text-fg-muted">
-                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--glow)]" />
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--glow)] light:rounded-none" />
                   Timeline: {p.timeline}
                 </span>
               </p>

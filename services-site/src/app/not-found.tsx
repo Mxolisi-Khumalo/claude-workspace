@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <section className="relative overflow-hidden pb-16 pt-[calc(var(--nav-h)+3rem)] md:pt-[calc(var(--nav-h)+5rem)]">
+    <section className="relative overflow-hidden pb-16 pt-[calc(var(--nav-h)+3rem)] md:pt-[calc(var(--nav-h)+5rem)] light:pb-24">
       <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-60" />
       <div className="container-x relative grid gap-14 lg:grid-cols-12 lg:items-center lg:gap-8">
         <div className="lg:col-span-7">
@@ -42,12 +42,13 @@ export default function NotFound() {
         </div>
 
         <div className="lg:col-span-5">
-          <div className="mkp-card overflow-hidden">
+          {/* Light: a black terminal (mkp-strip re-points the tokens to white type and neon). */}
+          <div className="mkp-card mkp-strip overflow-hidden">
             <span className="mkp-card-edge" />
             <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-pink/70" />
-              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-amber/70" />
-              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent/70" />
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-pink/70 light:rounded-none" />
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-amber/70 light:rounded-none" />
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent/70 light:rounded-none" />
               <span className="ml-2 font-mono text-xs text-fg-subtle">router.log</span>
             </div>
             <div className="space-y-2 p-5 font-mono text-[13px] leading-relaxed md:p-6">

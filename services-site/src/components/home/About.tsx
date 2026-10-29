@@ -9,14 +9,18 @@ interface Testimonial {
   image?: string;
 }
 
-/** Portrait, bio, credentials, certifications marquee and the testimonial. */
+/**
+ * Portrait, bio, credentials, certifications marquee and the testimonial.
+ * Light: square photo and panels, and the certifications run along a black
+ * utility strip in mono type with neon highlights.
+ */
 export function About({ profile, testimonial }: { profile: Profile; testimonial: Testimonial }) {
   return (
-    <section id="about" aria-label="About" className="relative scroll-mt-24 py-20 md:py-32">
-      <div className="container-x grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
+    <section id="about" aria-label="About" className="relative scroll-mt-24 py-20 md:py-32 light:py-16 md:light:py-24">
+      <div className="container-x grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20 light:border-t light:border-line light:pt-12 md:light:pt-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
           {profile.portrait && (
-            <figure className="hm-portrait group relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface lg:max-w-none">
+            <figure className="hm-portrait group relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface lg:max-w-none light:rounded-none light:border-line-strong">
               <Image
                 src={profile.portrait}
                 alt={`Portrait of ${profile.name}`}
@@ -25,8 +29,8 @@ export function About({ profile, testimonial }: { profile: Profile; testimonial:
                 className="object-cover object-[50%_28%]"
               />
               <div aria-hidden className="hm-portrait-scan pointer-events-none absolute inset-0" />
-              <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg/90 via-transparent to-transparent" />
-              <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 font-mono text-[11px] uppercase leading-relaxed tracking-[0.14em] text-fg">
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg/90 via-transparent to-transparent light:hidden" />
+              <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 font-mono text-[11px] uppercase leading-relaxed tracking-[0.14em] text-fg light:border-t light:border-line-strong light:bg-surface light:px-4 light:py-3 light:text-xs light:normal-case light:tracking-normal">
                 <span>
                   {profile.name}
                   <span className="mt-1 block text-fg-muted">{profile.location}</span>
@@ -51,9 +55,9 @@ export function About({ profile, testimonial }: { profile: Profile; testimonial:
           </div>
 
           <h3 className="eyebrow mt-12">Credentials</h3>
-          <ul className="mt-5 grid gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line">
+          <ul className="mt-5 grid gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line light:rounded-none light:border-line-strong">
             {profile.credibility.map((c) => (
-              <li key={c} className="flex gap-3 bg-bg-elevated/90 px-5 py-4 text-[15px] leading-snug text-fg">
+              <li key={c} className="flex gap-3 bg-bg-elevated/90 px-5 py-4 text-[15px] leading-snug text-fg light:bg-surface">
                 <span aria-hidden className="text-accent">
                   ✓
                 </span>
@@ -77,7 +81,7 @@ export function About({ profile, testimonial }: { profile: Profile; testimonial:
         </div>
       </div>
 
-      <div className="mt-24 md:mt-32">
+      <div className="mt-24 md:mt-32 light:mt-20 md:light:mt-24">
         <h3 className="container-x eyebrow mb-6">
           Certifications <span className="text-fg-subtle">· {profile.certifications.length} selected</span>
         </h3>
@@ -88,20 +92,23 @@ export function About({ profile, testimonial }: { profile: Profile; testimonial:
             </li>
           ))}
         </ul>
-        <div aria-hidden className="border-y border-line py-5">
+        <div aria-hidden className="border-y border-line py-5 light:border-black light:bg-black light:py-3">
           <Marquee speed={30}>
             {profile.certifications.map((c) => (
-              <span key={c.title} className="mx-2 inline-flex items-center gap-3 whitespace-nowrap rounded-full border border-line-strong bg-bg-elevated/70 px-5 py-2.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                <span className="text-sm font-medium text-fg">{c.title}</span>
-                <span className="font-mono text-[11px] text-fg-subtle">{c.issuer}</span>
+              <span
+                key={c.title}
+                className="mx-2 inline-flex items-center gap-3 whitespace-nowrap rounded-full border border-line-strong bg-bg-elevated/70 px-5 py-2.5 light:mx-0 light:rounded-none light:border-0 light:bg-transparent light:py-1.5"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-accent light:rounded-none light:bg-accent-bright" />
+                <span className="text-sm font-medium text-fg light:font-mono light:font-normal light:text-white">{c.title}</span>
+                <span className="font-mono text-[11px] text-fg-subtle light:text-sm light:text-accent-bright">{c.issuer}</span>
               </span>
             ))}
           </Marquee>
         </div>
       </div>
 
-      <figure className="container-x mt-24 md:mt-32">
+      <figure className="container-x mt-24 md:mt-32 light:mt-20 md:light:mt-24">
         <div className="relative mx-auto max-w-5xl">
           <span aria-hidden className="display pointer-events-none absolute -left-2 -top-10 select-none text-[clamp(6rem,14vw,12rem)] leading-none text-accent/25 md:-left-10 md:-top-16">
             “
@@ -116,11 +123,13 @@ export function About({ profile, testimonial }: { profile: Profile; testimonial:
               <span aria-hidden className="h-px w-10 bg-accent" />
               <span>
                 <span className="block font-semibold text-fg">{testimonial.source}</span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle">Original message, quoted in part</span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle light:text-xs light:normal-case light:tracking-normal">
+                  Original message, quoted in part
+                </span>
               </span>
             </span>
             {testimonial.image && (
-              <span className="block w-full max-w-sm overflow-hidden rounded-[var(--radius)] border border-line opacity-80 transition-opacity duration-500 hover:opacity-100">
+              <span className="block w-full max-w-sm overflow-hidden rounded-[var(--radius)] border border-line opacity-80 transition-opacity duration-500 hover:opacity-100 light:rounded-none light:border-line-strong light:opacity-100">
                 <Image
                   src={testimonial.image}
                   alt="Screenshot of the original message from the mentee"

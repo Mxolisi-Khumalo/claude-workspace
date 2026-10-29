@@ -13,12 +13,18 @@ import { date, dateTime, money } from "@/lib/format";
  * computed.
  */
 
-const shell = "rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur";
-const label = "font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle";
+// Dark: rounded glassy cards and pills. Light (GitHub Universe): square white
+// cells on 1px rules, mono labels as written, square green primary buttons and
+// 6px tinted secondary buttons.
+const frame = "rounded-2xl border border-line bg-surface/80 backdrop-blur light:rounded-none light:bg-surface light:backdrop-blur-none";
+const shell = `${frame} p-4`;
+const label = "font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle light:text-[11px] light:normal-case light:tracking-normal";
 const btn =
-  "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[background,color,box-shadow,opacity] disabled:cursor-not-allowed disabled:opacity-50";
-const btnPrimary = `${btn} bg-accent text-accent-ink hover:shadow-[var(--glow-accent)]`;
-const btnGhost = `${btn} border border-line-strong text-fg hover:border-accent hover:text-accent`;
+  "inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold transition-[background,color,box-shadow,opacity,border-color] disabled:cursor-not-allowed disabled:opacity-50 light:font-[550]";
+const btnPrimary = `${btn} bg-accent text-accent-ink hover:shadow-[var(--glow-accent)] light:hover:bg-accent-hover light:hover:shadow-none`;
+const btnGhost = `${btn} border border-line-strong text-fg hover:border-accent hover:text-accent light:rounded-[6px] light:bg-black/5 light:hover:border-fg/60 light:hover:bg-black/[0.08] light:hover:text-fg`;
+const field =
+  "rounded-xl border border-line bg-bg/60 text-fg outline-none transition-colors focus:border-accent light:rounded-none light:border-line-strong light:bg-surface";
 
 const TONE = { accent: "text-accent", violet: "text-violet", amber: "text-amber", sky: "text-sky" } as const;
 
@@ -128,11 +134,11 @@ function ContactForm({ card, active }: { card: Extract<ChatCard, { kind: "contac
 
 function Input({ label: text, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
-    <label className="grid gap-1">
+    <label className="grid min-w-0 gap-1">
       <span className={label}>{text}</span>
       <input
         {...props}
-        className="rounded-xl border border-line bg-bg/60 px-3 py-2 text-base text-fg outline-none transition-colors placeholder:text-fg-subtle focus:border-accent md:text-sm"
+        className={`${field} w-full min-w-0 px-3 py-2 text-base placeholder:text-fg-subtle md:text-sm`}
       />
     </label>
   );
@@ -150,7 +156,7 @@ function VerifyEmail({ card, active }: { card: Extract<ChatCard, { kind: "verify
     >
       <Header eyebrow="Verify your email" title={`Enter the 6-digit code sent to ${card.email}`} tone="sky" />
       {card.demoCode && (
-        <p className="mb-3 rounded-lg border border-amber/30 bg-amber/10 px-3 py-2 text-xs text-amber">
+        <p className="mb-3 rounded-lg border border-amber/30 bg-amber/10 px-3 py-2 text-xs text-amber light:rounded-none light:border-amber/40">
           Demo mode — no email was sent. Your code is <span className="font-mono font-semibold">{card.demoCode}</span>
         </p>
       )}
@@ -163,7 +169,7 @@ function VerifyEmail({ card, active }: { card: Extract<ChatCard, { kind: "verify
           aria-label="Verification code"
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          className="w-full rounded-xl border border-line bg-bg/60 px-3 py-2 text-center font-mono text-lg tracking-[0.5em] text-fg outline-none focus:border-accent"
+          className={`${field} w-full px-3 py-2 text-center font-mono text-lg tracking-[0.5em]`}
         />
         <button type="submit" className={btnPrimary} disabled={code.length !== 6}>
           Verify
@@ -183,7 +189,7 @@ function Confirm({ card, active }: { card: Extract<ChatCard, { kind: "confirm" }
   const [mountedAt] = useState(() => Date.now());
   const expired = new Date(card.expiresAt).getTime() < mountedAt;
   return (
-    <div className={clsx(shell, "border-accent/40 shadow-[0_0_40px_-20px_var(--accent)]")}>
+    <div className={clsx(shell, "border-accent/40 shadow-[0_0_40px_-20px_var(--accent)] light:border-l-4 light:border-line-strong light:border-l-accent light:shadow-none")}>
       <Header eyebrow="Please confirm" title={card.title} />
       <ul className="mb-4 space-y-1 text-sm text-fg-muted">
         {card.summary.map((s) => (
@@ -233,12 +239,13 @@ function Confirm({ card, active }: { card: Extract<ChatCard, { kind: "confirm" }
 function Quote({ card, active }: { card: Extract<ChatCard, { kind: "quote" }>; active: boolean }) {
   const deposit = Math.round((card.total * card.depositPercent) / 100);
   return (
-    <div className={clsx(shell, "overflow-hidden p-0")}>
-      <div className="flex items-start justify-between gap-4 border-b border-line bg-gradient-to-r from-accent/10 via-transparent to-violet/10 p-4">
+    <div className={clsx(frame, "overflow-hidden")}>
+      {/* Light: a saturated GitHub Universe tint band (black ink only) heads the quote. */}
+      <div className="flex items-start justify-between gap-4 border-b border-line bg-gradient-to-r from-accent/10 via-transparent to-violet/10 p-4 light:border-fg light:bg-none light:bg-tint-neon light:text-black">
         <div>
           <p className={label}>Quote {card.number}</p>
           <p className="display mt-1 text-3xl">{money(card.total, card.currency)}</p>
-          <p className="mt-1 text-xs text-fg-muted">
+          <p className="mt-1 text-xs text-fg-muted light:text-black/75">
             {card.depositPercent}% deposit · {money(deposit, card.currency)} · {card.timeline}
           </p>
         </div>
@@ -257,7 +264,7 @@ function Quote({ card, active }: { card: Extract<ChatCard, { kind: "quote" }>; a
         </tbody>
       </table>
       <details className="group border-t border-line px-4 py-3 text-xs text-fg-muted">
-        <summary className="cursor-pointer list-none font-mono uppercase tracking-[0.14em] text-fg-subtle group-open:text-fg">
+        <summary className="cursor-pointer list-none font-mono uppercase tracking-[0.14em] text-fg-subtle group-open:text-fg light:normal-case light:tracking-normal">
           Assumptions <span className="group-open:hidden">+</span>
           <span className="hidden group-open:inline">−</span>
         </summary>
@@ -303,8 +310,10 @@ function Slots({ card, active }: { card: Extract<ChatCard, { kind: "slots" }>; a
               });
             }}
             className={clsx(
-              "rounded-xl border px-3 py-2 text-left text-xs transition-colors disabled:cursor-not-allowed",
-              picked === s.start ? "border-accent bg-accent/15 text-fg" : "border-line text-fg-muted hover:border-accent hover:text-fg disabled:opacity-50",
+              "rounded-xl border px-3 py-2 text-left text-xs transition-colors disabled:cursor-not-allowed light:rounded-none",
+              picked === s.start
+                ? "border-accent bg-accent/15 text-fg light:bg-accent light:text-accent-ink"
+                : "border-line text-fg-muted hover:border-accent hover:text-fg disabled:opacity-50 light:border-line-strong light:bg-bg-elevated light:text-fg light:hover:bg-surface",
             )}
           >
             {s.label}
@@ -317,7 +326,7 @@ function Slots({ card, active }: { card: Extract<ChatCard, { kind: "slots" }>; a
 
 function Booking({ card }: { card: Extract<ChatCard, { kind: "booking" }> }) {
   return (
-    <div className={clsx(shell, "border-accent/40")}>
+    <div className={clsx(shell, "border-accent/40 light:border-l-4 light:border-line-strong light:border-l-accent")}>
       <Header eyebrow="Booked" title="Discovery call confirmed ✓" />
       <p className="text-sm text-fg">{dateTime(card.start, card.timezone)}</p>
       <p className="mt-1 text-xs text-fg-muted">{card.timezone} · invite sent by email</p>
@@ -332,7 +341,7 @@ function Booking({ card }: { card: Extract<ChatCard, { kind: "booking" }> }) {
 
 function Payment({ card }: { card: Extract<ChatCard, { kind: "payment" }> }) {
   return (
-    <div className={clsx(shell, "border-accent/40")}>
+    <div className={clsx(shell, "border-accent/40 light:border-l-4 light:border-line-strong light:border-l-accent")}>
       <Header eyebrow={`Secure payment · ${card.provider}`} title={card.purpose === "deposit" ? "Pay your deposit" : card.purpose === "balance" ? "Pay the balance" : "Pay in full"} />
       <p className="display text-3xl">{money(card.amount, card.currency)}</p>
       {card.charged && (
@@ -370,7 +379,7 @@ function QuickReplies({ card, active }: { card: Extract<ChatCard, { kind: "quick
           key={o}
           type="button"
           onClick={() => void sendChat({ action: { type: "quick_reply", text: o } })}
-          className="rounded-full border border-line-strong bg-surface/60 px-3.5 py-1.5 text-sm text-fg-muted transition-colors hover:border-accent hover:text-fg"
+          className="rounded-full border border-line-strong bg-surface/60 px-3.5 py-1.5 text-sm text-fg-muted transition-colors hover:border-accent hover:text-fg light:rounded-[6px] light:bg-black/5 light:text-fg light:hover:border-fg/60 light:hover:bg-black/[0.08]"
         >
           {o}
         </button>
@@ -381,7 +390,7 @@ function QuickReplies({ card, active }: { card: Extract<ChatCard, { kind: "quick
 
 function Notice({ card }: { card: Extract<ChatCard, { kind: "notice" }> }) {
   const tone = card.tone === "success" ? "border-accent/40 text-accent" : card.tone === "warning" ? "border-amber/40 text-amber" : "border-sky/40 text-sky";
-  return <p className={clsx("rounded-xl border bg-surface/60 px-3 py-2 text-sm", tone)}>{card.text}</p>;
+  return <p className={clsx("rounded-xl border bg-surface/60 px-3 py-2 text-sm light:rounded-none light:border-l-4 light:bg-surface", tone)}>{card.text}</p>;
 }
 
 /** Renders one card. `active` is false for cards in older messages (their buttons are disabled). */

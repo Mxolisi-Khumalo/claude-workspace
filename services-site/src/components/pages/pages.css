@@ -36,7 +36,7 @@
    which reads oddly in prices, so numerals use Mona Sans at the same width. */
 .mkp-figures {
   font-family: var(--font-sans);
-  font-stretch: 125%;
+  font-stretch: var(--display-stretch);
   font-feature-settings: normal;
 }
 
@@ -255,7 +255,7 @@
 .mkp-art-dots {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgb(255 255 255 / 0.22) 1px, transparent 1.2px);
+  background-image: radial-gradient(var(--art-dot) 1px, transparent 1.2px);
   background-size: 18px 18px;
   mask-image: radial-gradient(ellipse at 60% 40%, black 10%, transparent 70%);
 }
@@ -460,4 +460,229 @@
     transform: translate(-2px, 1px);
     opacity: 0.8;
   }
+}
+
+/* ==========================================================================
+ * Light theme — GitHub Universe's "blueprint" for the detail, index and
+ * legal pages. The page rails come from .blueprint-rails (root layout) at the
+ * outer edges of .container-x; the hooks below rule pages into bordered cells
+ * that bleed out to those rails, turn floating glass cards into white panels
+ * and flatten glows. Nothing in this block applies in dark.
+ *
+ * These rules are unlayered on purpose: they must beat the Tailwind spacing
+ * utilities (layered) that shape the same elements in dark.
+ * ========================================================================== */
+
+/* Sections are rows, ruled off from rail to rail; their cells pad themselves. */
+[data-theme="light"] .mkp-sec {
+  padding-block: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* Breathing room inside a full-width cell (e.g. the process track). */
+[data-theme="light"] .mkp-pad {
+  margin-top: 0;
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+/* A section heading in its own cell, ruled off underneath. */
+[data-theme="light"] .mkp-head {
+  margin-inline: calc(var(--gutter) * -1);
+  padding: clamp(3rem, 6vw, 5rem) var(--gutter) clamp(2.5rem, 5vw, 4rem);
+  border-bottom: 1px solid var(--line);
+  max-width: none;
+}
+
+/* Universe-style slug label: "overview/". The slash is decoration only. */
+[data-theme="light"] .mkp-slug {
+  text-transform: lowercase;
+}
+[data-theme="light"] .mkp-slug::after {
+  content: "/" / "";
+}
+
+/* Two columns (heading | body) split by a vertical rule on wide screens. */
+[data-theme="light"] .mkp-split {
+  row-gap: 0;
+}
+[data-theme="light"] .mkp-split > :first-child {
+  padding-top: clamp(3rem, 6vw, 5rem);
+}
+[data-theme="light"] .mkp-split > :last-child {
+  padding-top: 2.5rem;
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+@media (min-width: 1024px) {
+  [data-theme="light"] .mkp-split > :first-child,
+  [data-theme="light"] .mkp-split > :last-child {
+    padding-block: clamp(3rem, 6vw, 5rem);
+  }
+  [data-theme="light"] .mkp-split > :last-child {
+    border-left: 1px solid var(--line);
+    padding-left: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+/* Card grids become ruled cells that bleed to the rails: no gaps, no radius,
+   each cell draws its right and bottom rule (incomplete rows stay open). */
+[data-theme="light"] .mkp-cells {
+  gap: 0;
+  /* -1px below: the next row's top rule lands on the last cells' bottom rules. */
+  margin: 0 calc(var(--gutter) * -1) -1px;
+  max-width: none;
+  border-left: 1px solid var(--line);
+}
+[data-theme="light"] .mkp-cells > * {
+  margin: 0;
+  border-width: 0 1px 1px 0;
+  border-style: solid;
+  border-color: var(--line);
+  border-radius: 0;
+  translate: none; /* no staggered offsets: cells share their rules */
+}
+/* Cell content lines up with the headings (one gutter in from the rail). */
+[data-theme="light"] .mkp-cells > .mkp-card:not(.mkp-cell-flush),
+[data-theme="light"] .mkp-cell-body {
+  padding-inline: var(--gutter);
+}
+
+/* A full-width panel (CTA band, code strip): bled out to the rails, unframed
+   (the row rules above and below frame it). */
+[data-theme="light"] .mkp-bleed {
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  border-width: 0;
+}
+
+/* A stack of panels inside a cell: no gaps, shared rules. */
+[data-theme="light"] .mkp-stack {
+  gap: 0;
+}
+[data-theme="light"] .mkp-stack > * + * {
+  border-top-width: 0;
+}
+
+/* Evidence: a ruled two-column grid instead of masonry columns. */
+@media (min-width: 768px) {
+  [data-theme="light"] .mkp-evidence.mkp-cells {
+    display: grid;
+    columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+[data-theme="light"] .mkp-evidence.mkp-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A ruled list that bleeds to the rails (rows padded one gutter in). */
+[data-theme="light"] .mkp-rows {
+  margin-inline: calc(var(--gutter) * -1);
+}
+[data-theme="light"] .mkp-rows > * > :is(a, div) {
+  padding-inline: var(--gutter);
+}
+
+/*
+ * "Dark island": Universe's black utility strip. Re-points the colour tokens
+ * locally, so everything inside (buttons included) reads white on black with
+ * neon highlights. Light only — in dark the element keeps its own styling.
+ */
+[data-theme="light"] .mkp-strip {
+  --bg: #000000;
+  --bg-elevated: #0d0f0e;
+  --surface: #0d0f0e;
+  --surface-2: #1a1d1b;
+  --line: rgb(255 255 255 / 0.16);
+  --line-strong: rgb(255 255 255 / 0.32);
+  --fg: #ffffff;
+  --fg-muted: rgb(255 255 255 / 0.72);
+  --fg-subtle: rgb(255 255 255 / 0.62);
+  --accent: var(--accent-bright);
+  --accent-ink: #000000;
+  --accent-hover: #8af5a6;
+  --glow: var(--accent-bright);
+  --sky: #79c0ff;
+  --pink: #ff7eb6;
+  --amber: #ffa657;
+  --violet: #b99cff;
+  background: #000;
+  color: var(--fg);
+  color-scheme: dark;
+}
+[data-theme="light"] .mkp-strip .grid-bg {
+  display: none;
+}
+
+/* ---------- Light: components ---------- */
+
+[data-theme="light"] .mkp-card {
+  border-radius: 0;
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme="light"] .mkp-card > .mkp-card-edge {
+  display: none;
+}
+[data-theme="light"] .mkp-card::before {
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, -400px),
+    var(--glow, var(--accent)),
+    transparent 65%
+  );
+}
+[data-theme="light"] .mkp-card::after {
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, -400px),
+    color-mix(in oklab, var(--glow, var(--accent)) 6%, transparent),
+    transparent 60%
+  );
+}
+
+/* Ghost numerals: a crisp 1px outline in the section colour (the same blueprint
+   treatment as the home marquee's outlined words) instead of a soft glow wash,
+   which read blurry on paper. Transparent inside, so rails and grid show through. */
+[data-theme="light"] .mkp-ghost {
+  background-image: none;
+  color: transparent;
+  -webkit-text-stroke: 1.25px color-mix(in oklab, var(--glow, var(--accent)) 70%, transparent);
+}
+
+/* Stack ticker: black words on saturated tints, never outlined. */
+[data-theme="light"] .mkp-ghost-muted {
+  color: #000;
+  -webkit-text-stroke: 0;
+}
+
+[data-theme="light"] .mkp-chip {
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--fg-muted);
+}
+[data-theme="light"] .mkp-chip:hover {
+  border-color: var(--fg);
+  box-shadow: none;
+}
+
+[data-theme="light"] .mkp-timeline[data-motion] [data-step][data-active] .mkp-step-node {
+  box-shadow: none;
+}
+[data-theme="light"] .mkp-step-node {
+  background: var(--surface);
+}
+
+/* Generative covers: Universe tints on a green-grey sheet, ink dots. */
+.mkp-art {
+  --art-b: var(--violet);
+  --art-c: var(--sky);
+  --art-dot: rgb(255 255 255 / 0.22);
+}
+[data-theme="light"] .mkp-art {
+  --art-b: var(--tint-lilac);
+  --art-c: var(--tint-neon);
+  --art-dot: rgb(0 0 0 / 0.16);
+  background: var(--surface-2);
+}
+[data-theme="light"] .mkp-art-blob {
+  opacity: 0.45;
 }

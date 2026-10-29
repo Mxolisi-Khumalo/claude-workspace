@@ -23,7 +23,7 @@ export interface ServiceRowData {
 function StrengthBadge({ strength }: { strength: EvidenceStrength }) {
   const s = STRENGTH[strength];
   return (
-    <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-bg/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-muted">
+    <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-bg/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-muted light:rounded-[4px] light:bg-surface light:px-2.5 light:text-[11px] light:normal-case light:tracking-normal">
       <span aria-hidden className="flex items-end gap-[2px]">
         {[1, 2, 3].map((b) => (
           <span
@@ -46,7 +46,8 @@ const GAP = 28;
 /**
  * OFF+BRAND-style numbered service index. On fine pointers a preview card
  * follows the cursor and slides between each service's evidence image; on
- * touch the rows are plain, tappable cards.
+ * touch the rows are plain, tappable cards. Light: a ruled table from rail to
+ * rail, one cell per column (see .hm-row-col in home.css).
  */
 export function ServiceRows({ items }: { items: ServiceRowData[] }) {
   const fine = useFinePointer();
@@ -102,7 +103,7 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
 
   return (
     <div className="relative">
-      <ul ref={list} className="grid gap-4 md:gap-0 md:border-t md:border-line">
+      <ul ref={list} className="grid gap-4 md:gap-0 md:border-t md:border-line light:-mx-[var(--gutter)] light:gap-0 md:light:border-t-0">
         {items.map((s, i) => (
           <li key={s.slug} className="hm-row" style={{ "--svc": `var(--${s.accent})` } as React.CSSProperties}>
             <Link
@@ -111,12 +112,12 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
               data-cursor-label="Explore"
               onPointerEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
-              className="group relative isolate flex flex-col gap-4 overflow-hidden rounded-[var(--radius)] border border-line bg-bg-elevated/70 p-6 md:grid md:grid-cols-[4.5rem_minmax(0,1fr)_auto] md:items-center md:gap-x-8 md:rounded-none md:border-0 md:border-b md:bg-transparent md:px-4 md:py-9 lg:grid-cols-[5.5rem_minmax(0,1fr)_11.5rem_15rem] lg:py-10"
+              className="group relative isolate flex flex-col gap-4 overflow-hidden rounded-[var(--radius)] border border-line bg-bg-elevated/70 p-6 md:grid md:grid-cols-[4.5rem_minmax(0,1fr)_auto] md:items-center md:gap-x-8 md:rounded-none md:border-0 md:border-b md:bg-transparent md:px-4 md:py-9 lg:grid-cols-[5.5rem_minmax(0,1fr)_11.5rem_15rem] lg:py-10 light:rounded-none light:border-0 light:border-b light:bg-transparent light:px-[var(--gutter)] light:py-7 md:light:grid-cols-[calc(var(--gutter)+3.5rem)_minmax(0,1fr)_auto] md:light:items-stretch md:light:gap-x-0 md:light:p-0 lg:light:grid-cols-[calc(var(--gutter)+4rem)_minmax(0,1fr)_13rem_16rem]"
             >
               <span aria-hidden className="hm-row-fill" />
               <span aria-hidden className="hm-row-line hidden md:block" />
 
-              <span className="flex items-center justify-between md:block">
+              <span className="hm-row-col hm-row-num flex items-center justify-between md:block">
                 <span className="font-mono text-sm text-fg-subtle transition-colors duration-300 group-hover:text-[var(--svc)]">
                   {pad2(i + 1)}
                 </span>
@@ -125,20 +126,24 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
                 </span>
               </span>
 
-              <span className="hm-row-shift min-w-0">
-                <span className="hm-row-title display block text-[clamp(1.85rem,3.5vw,3.2rem)] leading-[0.95] transition-colors duration-300">
-                  {s.title}
+              <span className="hm-row-col min-w-0">
+                <span className="hm-row-shift block">
+                  <span className="hm-row-title display block text-[clamp(1.85rem,3.5vw,3.2rem)] leading-[0.95] transition-colors duration-300 light:leading-[1.02]">
+                    {s.title}
+                  </span>
+                  <span className="mt-3 block max-w-[58ch] text-base leading-relaxed text-fg-muted">{s.tagline}</span>
                 </span>
-                <span className="mt-3 block max-w-[58ch] text-base leading-relaxed text-fg-muted">{s.tagline}</span>
               </span>
 
-              <span className="hidden lg:flex lg:justify-end">
+              <span className="hm-row-col hidden lg:flex lg:justify-end lg:light:items-start lg:light:justify-start">
                 <StrengthBadge strength={s.strength} />
               </span>
 
-              <span className="flex items-center justify-between gap-6 md:justify-end">
-                <span className="flex flex-col md:items-end">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle">From</span>
+              <span className="hm-row-col flex items-center justify-between gap-6 md:justify-end md:light:items-start md:light:justify-between">
+                <span className="flex flex-col md:items-end md:light:items-start">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle light:text-[11px] light:normal-case light:tracking-normal">
+                    From
+                  </span>
                   <span className="whitespace-nowrap text-lg font-semibold text-fg">
                     {formatPrice(s.fromZar, "ZAR")}
                     <span className="text-fg-subtle"> / </span>
@@ -150,7 +155,7 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
                 </span>
                 <span
                   aria-hidden
-                  className="hm-row-arrow grid h-12 w-12 shrink-0 place-items-center rounded-full border border-line-strong text-lg text-fg"
+                  className="hm-row-arrow grid h-12 w-12 shrink-0 place-items-center rounded-full border border-line-strong text-lg text-fg light:h-11 light:w-11 light:rounded-[6px] light:bg-black/5"
                 >
                   →
                 </span>
@@ -164,7 +169,7 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
         <div
           ref={card}
           aria-hidden
-          className="pointer-events-none fixed left-0 top-0 z-30 overflow-hidden rounded-[var(--radius)] border border-line-strong bg-surface shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9)]"
+          className="pointer-events-none fixed left-0 top-0 z-30 overflow-hidden rounded-[var(--radius)] border border-line-strong bg-surface shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9)] light:rounded-none light:shadow-[0_24px_48px_-28px_rgb(25_31_27/0.45)]"
           style={{ width: W, height: H, visibility: "hidden" }}
         >
           <div
@@ -187,14 +192,17 @@ export function ServiceRows({ items }: { items: ServiceRowData[] }) {
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {s.preview.tech.map((t) => (
-                        <span key={t} className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-fg">
+                        <span
+                          key={t}
+                          className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-fg light:rounded-[4px] light:border-line-strong light:bg-surface/80"
+                        >
                           {t}
                         </span>
                       ))}
                     </div>
                   </div>
                 )}
-                <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/85 to-transparent px-4 pb-3 pt-10 font-mono text-[10px] uppercase tracking-[0.14em] text-fg">
+                <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/85 to-transparent px-4 pb-3 pt-10 font-mono text-[10px] uppercase tracking-[0.14em] text-fg light:border-t light:border-line light:bg-surface light:bg-none light:py-2.5 light:text-[11px] light:normal-case light:tracking-normal">
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: `var(--${s.accent})` }} />
                   <span className="truncate">{s.preview.caption}</span>
                 </div>

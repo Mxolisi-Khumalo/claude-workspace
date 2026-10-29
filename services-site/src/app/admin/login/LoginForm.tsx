@@ -25,7 +25,7 @@ export function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-ink transition-shadow hover:shadow-[var(--glow-accent)] disabled:opacity-60"
+        className="w-full rounded-[var(--radius-button)] bg-accent px-6 py-3 text-sm font-semibold text-accent-ink transition-[box-shadow,background-color] hover:shadow-[var(--glow-accent)] disabled:opacity-60 light:hover:bg-accent-hover light:hover:shadow-none"
       >
         {pending ? "Checking…" : "Sign in"}
       </button>

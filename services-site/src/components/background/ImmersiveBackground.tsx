@@ -4,19 +4,25 @@ import { useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
 import { ensurePointerTracking, pointer } from "@/hooks/usePointer";
 import { isMotionPaused } from "@/hooks/useMotionPaused";
+import { getTheme, useTheme } from "@/hooks/useTheme";
 
 const VERT = `#version 300 es
 in vec2 aPos;
 void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
 
-// Domain-warped fbm "aurora" over a dot grid, tinted with the brand accents.
-// The pointer adds a soft spotlight and bends the flow; scroll shifts the hue.
+// Domain-warped fbm "aurora", tinted with the brand accents. The pointer adds
+// a soft spotlight and bends the flow; scroll shifts the hue.
+// Dark theme: glowing aurora over a dot grid on near-black.
+// Light theme: GitHub Universe-style paper (#e9edec) with a fine blueprint
+// grid and faint pastel washes that gather around the pointer.
 const FRAG = `#version 300 es
 precision highp float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uScroll;
+uniform float uTheme;   // 0 = dark, 1 = light
+uniform float uPxScale; // canvas pixels per CSS pixel
 out vec4 outColor;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -51,6 +57,30 @@ void main() {
   vec3 sky    = vec3(0.475, 0.753, 1.0);
   float hue = 0.5 + 0.5 * sin(uScroll * 2.2 + t * 2.0);
   vec3 tint = mix(mix(green, sky, hue), violet, clamp(r.x * 1.3 - 0.2, 0.0, 1.0));
+
+  if (uTheme > 0.5) {
+    vec3 paper = vec3(0.914, 0.929, 0.925);
+    // Washes are pale pastels at least as light as the paper (relative luminance
+    // >= paper's), so tinting never darkens what text sits on: the light theme's
+    // contrast is specified against --bg (#e9edec), and green text on it has
+    // little headroom (4.65:1). No vignette for the same reason (and Universe's
+    // paper is flat).
+    vec3 lg = vec3(0.80, 0.97, 0.84);
+    vec3 lv = vec3(0.94, 0.92, 1.0);
+    vec3 lb = vec3(0.86, 0.95, 1.0);
+    vec3 ltint = mix(mix(lg, lb, hue), lv, clamp(r.x * 1.3 - 0.2, 0.0, 1.0));
+    float lband = smoothstep(0.5, 1.0, f) * (0.3 + 0.7 * uv.y);
+    vec3 col = mix(paper, ltint, lband * 0.5);
+    col = mix(col, ltint, 0.4 * exp(-d * 3.0));
+    // Blueprint grid: 24px cells in CSS pixels, stronger near the pointer.
+    float cell = 24.0 * uPxScale;
+    // Distance (in canvas px) to the nearest grid line.
+    vec2 gg = abs(fract(gl_FragCoord.xy / cell + 0.5) - 0.5) * cell;
+    float grid = 1.0 - smoothstep(0.0, max(0.6, uPxScale), min(gg.x, gg.y));
+    col -= vec3(0.02, 0.018, 0.02) * grid * (0.55 + 1.6 * exp(-d * 2.2));
+    outColor = vec4(col, 1.0);
+    return;
+  }
 
   // Aurora bands concentrated towards the top of the viewport.
   float band = smoothstep(0.35, 1.0, f) * (0.55 + 0.45 * uv.y);
@@ -91,7 +121,15 @@ function compile(gl: WebGL2RenderingContext, type: number, src: string) {
  */
 export function ImmersiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const redraw = useRef<(() => void) | null>(null);
   const reduced = usePrefersReducedMotion();
+  const theme = useTheme();
+
+  // The animation loop picks the theme up on its next frame; a static
+  // (reduced-motion) frame has to be redrawn explicitly.
+  useEffect(() => {
+    redraw.current?.();
+  }, [theme]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -121,6 +159,8 @@ export function ImmersiveBackground() {
     const uTime = gl.getUniformLocation(prog, "uTime");
     const uPointer = gl.getUniformLocation(prog, "uPointer");
     const uScroll = gl.getUniformLocation(prog, "uScroll");
+    const uTheme = gl.getUniformLocation(prog, "uTheme");
+    const uPxScale = gl.getUniformLocation(prog, "uPxScale");
 
     const scale = Math.min(window.devicePixelRatio, 1.5) * 0.5;
     const resize = () => {
@@ -128,6 +168,7 @@ export function ImmersiveBackground() {
       canvas.height = Math.floor(window.innerHeight * scale);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uPxScale, scale);
     };
     resize();
     window.addEventListener("resize", resize);
@@ -151,8 +192,10 @@ export function ImmersiveBackground() {
       gl.uniform1f(uTime, reduced ? 12 : elapsed);
       gl.uniform2f(uPointer, px, py);
       gl.uniform1f(uScroll, window.scrollY / scrollMax);
+      gl.uniform1f(uTheme, getTheme() === "light" ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
+    redraw.current = draw;
 
     const loop = () => {
       draw();
@@ -174,6 +217,7 @@ export function ImmersiveBackground() {
     canvas.dataset.ready = "true";
 
     return () => {
+      redraw.current = null;
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", draw);
@@ -187,13 +231,7 @@ export function ImmersiveBackground() {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(60% 50% at 70% 0%, rgb(163 113 247 / 0.18), transparent 70%), radial-gradient(50% 40% at 15% 10%, rgb(126 231 135 / 0.14), transparent 70%), var(--bg)",
-        }}
-      />
+      <div className="immersive-fallback absolute inset-0" />
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000 data-[ready=true]:opacity-100"

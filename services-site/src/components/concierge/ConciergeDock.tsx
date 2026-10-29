@@ -61,13 +61,15 @@ export function ConciergeDock() {
         data-cursor-label="Chat"
         className={clsx(
           "group fixed bottom-5 right-5 z-[60] flex items-center gap-3 rounded-full border border-line-strong bg-bg-elevated/90 py-2 pl-2 pr-5 shadow-[0_20px_60px_-20px_rgb(0_0_0/0.8)] backdrop-blur-xl transition-[transform,opacity,border-color] duration-500 ease-[var(--ease-out)] hover:border-accent",
+          // Light: a square white cell with a soft paper shadow instead of a black halo.
+          "light:rounded-none light:bg-surface light:shadow-[var(--shadow-panel)] light:hover:border-fg/60",
           (hideLauncher || open) && "pointer-events-none translate-y-4 opacity-0",
         )}
       >
         <MiniBot mood={chat.mood} size={40} />
         <span className="text-left">
           <span className="block text-sm font-semibold leading-tight">Ask Byte</span>
-          <span className="block text-[11px] text-fg-muted">Instant quote · book a call</span>
+          <span className="block text-[11px] text-fg-muted light:font-mono">Instant quote · book a call</span>
         </span>
         <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
@@ -77,7 +79,7 @@ export function ConciergeDock() {
 
       <div
         className={clsx(
-          "fixed inset-0 z-[70] bg-black/50 backdrop-blur-[2px] transition-opacity duration-500 md:bg-black/20",
+          "fixed inset-0 z-[70] bg-black/50 backdrop-blur-[2px] transition-opacity duration-500 md:bg-black/20 light:bg-black/35 md:light:bg-black/10",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={closeConcierge}
@@ -96,7 +98,7 @@ export function ConciergeDock() {
         )}
         inert={!open}
       >
-        <ChatPanel className="h-full w-full rounded-none md:rounded-[var(--radius-lg)]" onClose={closeConcierge} />
+        <ChatPanel className="h-full w-full rounded-none md:rounded-[var(--radius-lg)] md:light:rounded-none md:light:shadow-[var(--shadow-panel)]" onClose={closeConcierge} />
       </div>
     </>
   );

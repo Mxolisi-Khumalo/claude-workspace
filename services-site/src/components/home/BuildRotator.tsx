@@ -85,7 +85,7 @@ export function BuildRotator({ className }: { className?: string }) {
       <span className="sr-only">{sentence}</span>
       <span aria-hidden className="whitespace-nowrap">
         <span className="text-fg-subtle">I build </span>
-        <span ref={word} className="text-fg">
+        <span ref={word} className="text-fg light:text-accent">
           {ITEMS[0]}
         </span>
         <span className="hm-caret" />

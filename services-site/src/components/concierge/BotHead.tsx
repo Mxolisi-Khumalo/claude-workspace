@@ -5,6 +5,7 @@ import { ContactShadows, Environment, Lightformer, RoundedBox } from "@react-thr
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { ensurePointerTracking, pointer } from "@/hooks/usePointer";
+import { useTheme, type Theme } from "@/hooks/useTheme";
 
 export type BotMood = "idle" | "listening" | "thinking" | "happy";
 
@@ -15,7 +16,42 @@ const AMBER = new THREE.Color("#ffa657");
 /** Pointer distance (px from the bot's centre) inside which the bot tracks the cursor. */
 const TRACK_RADIUS = 520;
 
+/** Materials and lights per site theme: a glossy white bot on paper, a graphite bot in the dark. */
+const PALETTES = {
+  light: {
+    shell: { color: "#f2f5f3", metalness: 0.05, roughness: 0.22 },
+    visor: "#0b0f0c",
+    ear: "#d2d9d4",
+    earRing: "#08872b",
+    stem: "#96a199",
+    cheek: "#f67ed2",
+    ambient: 0.95,
+    key: 1.7,
+    rimViolet: { color: "#ae85ff", intensity: 9 },
+    rimGreen: { color: "#5fed83", intensity: 6 },
+    formers: { key: 2.6, side: 0.7 },
+    shadow: { color: "#191f1b", opacity: 0.32 },
+  },
+  dark: {
+    shell: { color: "#3a4456", metalness: 0.25, roughness: 0.32 },
+    visor: "#05070a",
+    ear: "#232a36",
+    earRing: "#7ee787",
+    stem: "#2b3341",
+    cheek: "#ff7eb6",
+    ambient: 0.6,
+    key: 1.4,
+    rimViolet: { color: "#a371f7", intensity: 18 },
+    rimGreen: { color: "#7ee787", intensity: 10 },
+    formers: { key: 2, side: 1.2 },
+    shadow: { color: "#000000", opacity: 0.5 },
+  },
+} satisfies Record<Theme, unknown>;
+
+type Palette = (typeof PALETTES)[Theme];
+
 interface HeadProps {
+  palette: Palette;
   mood: BotMood;
   hostRef: React.RefObject<HTMLDivElement | null>;
   reduced: boolean;
@@ -77,7 +113,7 @@ function Eye({
   );
 }
 
-function Head({ mood, hostRef, reduced }: HeadProps) {
+function Head({ palette, mood, hostRef, reduced }: HeadProps) {
   const root = useRef<THREE.Group>(null);
   const antennaTip = useRef<THREE.Mesh>(null);
   const look = useRef(new THREE.Vector2());
@@ -139,11 +175,11 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
     <group ref={root}>
       {/* Shell */}
       <RoundedBox args={[1.6, 1.25, 1.2]} radius={0.38} smoothness={6}>
-        <meshPhysicalMaterial color="#3a4456" metalness={0.25} roughness={0.32} clearcoat={1} clearcoatRoughness={0.12} />
+        <meshPhysicalMaterial {...palette.shell} clearcoat={1} clearcoatRoughness={0.12} />
       </RoundedBox>
       {/* Visor */}
       <RoundedBox args={[1.22, 0.72, 0.1]} radius={0.2} smoothness={6} position={[0, 0.02, 0.56]}>
-        <meshPhysicalMaterial color="#05070a" metalness={0.1} roughness={0.05} clearcoat={1} />
+        <meshPhysicalMaterial color={palette.visor} metalness={0.1} roughness={0.05} clearcoat={1} />
       </RoundedBox>
       <Eye side={-1} mood={mood} look={look} blink={blink} reduced={reduced} />
       <Eye side={1} mood={mood} look={look} blink={blink} reduced={reduced} />
@@ -151,7 +187,7 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
       {[-1, 1].map((s) => (
         <mesh key={s} position={[s * 0.52, -0.2, 0.6]}>
           <circleGeometry args={[0.06, 24]} />
-          <meshBasicMaterial color="#ff7eb6" transparent opacity={mood === "happy" ? 0.85 : 0.35} />
+          <meshBasicMaterial color={palette.cheek} transparent opacity={mood === "happy" ? 0.85 : 0.35} />
         </mesh>
       ))}
       {/* Ears */}
@@ -159,18 +195,18 @@ function Head({ mood, hostRef, reduced }: HeadProps) {
         <group key={s} position={[s * 0.84, 0, 0]} rotation={[0, 0, (s * Math.PI) / 2]}>
           <mesh>
             <cylinderGeometry args={[0.2, 0.2, 0.14, 32]} />
-            <meshStandardMaterial color="#232a36" metalness={0.6} roughness={0.3} />
+            <meshStandardMaterial color={palette.ear} metalness={0.4} roughness={0.3} />
           </mesh>
           <mesh position={[0, s * -0.075, 0]} rotation={[0, 0, 0]}>
             <cylinderGeometry args={[0.12, 0.12, 0.02, 32]} />
-            <meshStandardMaterial color="#7ee787" emissive="#7ee787" emissiveIntensity={0.6} />
+            <meshStandardMaterial color={palette.earRing} emissive={palette.earRing} emissiveIntensity={0.6} />
           </mesh>
         </group>
       ))}
       {/* Antenna */}
       <mesh position={[0, 0.78, 0]}>
         <cylinderGeometry args={[0.025, 0.035, 0.32, 12]} />
-        <meshStandardMaterial color="#2b3341" metalness={0.7} roughness={0.3} />
+        <meshStandardMaterial color={palette.stem} metalness={0.7} roughness={0.3} />
       </mesh>
       <mesh ref={antennaTip} position={[0, 0.98, 0]}>
         <sphereGeometry args={[0.08, 24, 24]} />
@@ -197,6 +233,7 @@ export default function BotHead({
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
+  const palette = PALETTES[useTheme()];
 
   useEffect(() => {
     ensurePointerTracking();
@@ -215,17 +252,17 @@ export default function BotHead({
         camera={{ position: [0, 0.2, 5.4], fov: 30 }}
         gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[3, 4, 5]} intensity={1.4} />
-        <pointLight position={[-3, 1, 2]} color="#a371f7" intensity={18} />
-        <pointLight position={[3, -1, 2]} color="#7ee787" intensity={10} />
+        <ambientLight intensity={palette.ambient} />
+        <directionalLight position={[3, 4, 5]} intensity={palette.key} />
+        <pointLight position={[-3, 1, 2]} color={palette.rimViolet.color} intensity={palette.rimViolet.intensity} />
+        <pointLight position={[3, -1, 2]} color={palette.rimGreen.color} intensity={palette.rimGreen.intensity} />
         <Environment resolution={128}>
-          <Lightformer intensity={2} position={[0, 3, 4]} scale={[6, 1.5, 1]} />
-          <Lightformer intensity={1.2} color="#a371f7" position={[-4, 0, 1]} rotation-y={Math.PI / 2} scale={[3, 3, 1]} />
-          <Lightformer intensity={1.2} color="#7ee787" position={[4, 0, 1]} rotation-y={-Math.PI / 2} scale={[3, 3, 1]} />
+          <Lightformer intensity={palette.formers.key} position={[0, 3, 4]} scale={[6, 1.5, 1]} />
+          <Lightformer intensity={palette.formers.side} color={palette.rimViolet.color} position={[-4, 0, 1]} rotation-y={Math.PI / 2} scale={[3, 3, 1]} />
+          <Lightformer intensity={palette.formers.side} color={palette.rimGreen.color} position={[4, 0, 1]} rotation-y={-Math.PI / 2} scale={[3, 3, 1]} />
         </Environment>
-        <Head mood={mood} hostRef={hostRef} reduced={reduced} />
-        <ContactShadows position={[0, -1.05, 0]} opacity={0.5} scale={4} blur={2.6} far={2} color="#000000" />
+        <Head palette={palette} mood={mood} hostRef={hostRef} reduced={reduced} />
+        <ContactShadows position={[0, -1.05, 0]} opacity={palette.shadow.opacity} scale={4} blur={2.6} far={2} color={palette.shadow.color} />
       </Canvas>
     </div>
   );

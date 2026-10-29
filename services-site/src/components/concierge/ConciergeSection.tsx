@@ -84,9 +84,10 @@ export function ConciergeSection() {
   }, []);
 
   return (
-    <section id="concierge" className="relative scroll-mt-24 py-28 md:py-40">
+    <section id="concierge" className="relative scroll-mt-24 py-28 md:py-40 light:py-16 md:light:py-24">
       <div className="container-x">
-        <div className="mb-14 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+        {/* Light: the heading sits in its own cell, ruled off from rail to rail. */}
+        <div className="mb-14 grid gap-6 md:grid-cols-[1fr_auto] md:items-end light:-mx-[var(--gutter)] light:mb-10 light:border-y light:border-line light:px-[var(--gutter)] light:py-12 md:light:mb-12 md:light:py-14">
           <div>
             <p className="eyebrow mb-5">{"// 05 — Concierge"}</p>
             <RevealText as="h2" className="display max-w-4xl text-[clamp(2.5rem,6.5vw,6rem)]">
@@ -98,27 +99,28 @@ export function ConciergeSection() {
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
           <div className="relative flex flex-col">
             <div
               ref={botWrap}
-              className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-lg)] border border-line bg-[radial-gradient(circle_at_50%_40%,rgb(126_231_135/0.12),transparent_60%)]"
+              className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-lg)] border border-line bg-[radial-gradient(circle_at_50%_40%,rgb(126_231_135/0.12),transparent_60%)] light:rounded-none light:border-line-strong light:bg-bg-elevated light:bg-none"
             >
-              <div className="grid-bg absolute inset-0 opacity-60" aria-hidden />
+              {/* Light: the robot stands on a sheet of graph paper. */}
+              <div className="grid-bg absolute inset-0 opacity-60 light:opacity-100 light:[background-size:24px_24px]" aria-hidden />
               {botNear ? (
                 <BotHead mood={chat.mood} reduced={reduced || paused} className="absolute inset-0" />
               ) : (
                 <BotPlaceholder />
               )}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between p-5 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between p-5 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-subtle light:border-t light:border-line light:bg-surface light:px-4 light:py-3 light:text-xs light:normal-case light:tracking-normal">
                 <span>byte.v1 · {chat.mood}</span>
                 <span className="text-accent">● online</span>
               </div>
             </div>
 
-            <ul className="mt-6 grid gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line sm:grid-cols-2">
+            <ul className="mt-6 grid gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line sm:grid-cols-2 light:rounded-none light:border-line-strong">
               {CAPABILITIES.map((c) => (
-                <li key={c.k} className="bg-bg-elevated/90 p-4">
+                <li key={c.k} className="bg-bg-elevated/90 p-4 light:bg-bg light:p-5">
                   <p className="font-mono text-[11px] text-accent">{c.k}</p>
                   <p className="mt-1 font-semibold">{c.t}</p>
                   <p className="mt-1 text-sm text-fg-muted">{c.d}</p>
@@ -128,7 +130,7 @@ export function ConciergeSection() {
           </div>
 
           <div ref={panelWrap} className="flex flex-col gap-5">
-            <ChatPanel variant="inline" className="h-[640px] max-h-[80dvh] shadow-[0_40px_120px_-40px_rgb(126_231_135/0.25)]" />
+            <ChatPanel variant="inline" className="h-[640px] max-h-[80dvh] shadow-[0_40px_120px_-40px_rgb(126_231_135/0.25)] light:shadow-none" />
             <ul className="grid gap-2 text-sm text-fg-muted sm:grid-cols-2">
               {TRUST.map((t) => (
                 <li key={t} className="flex gap-2">
