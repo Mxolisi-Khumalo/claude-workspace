@@ -27,16 +27,16 @@
   --line-strong: #b6bfb8;
 
   --fg: #000000;
-  --fg-muted: #58635b;
-  --fg-subtle: #5b665e; /* ≥ 4.9:1 on every light surface */
+  --fg-muted: #2b322d;
+  --fg-subtle: #3d453f; /* ≥ 8:1 on every light surface */
 
-  --accent: #077a28; /* GitHub green, darkened a touch so small text passes 4.5:1 */
+  --accent: #05661f; /* deep GitHub green: ≥ 6.5:1 as text on paper, and with white text on it */
   --accent-ink: #ffffff;
   --accent-bright: #5fed83; /* neon green for decoration on dark strips */
-  --violet: #583af7;
-  --amber: #6e5d00;
-  --sky: #0055d5;
-  --pink: #a8226a;
+  --violet: #3f22c9;
+  --amber: #574a00;
+  --sky: #003f9e;
+  --pink: #7d1650;
 
   /* Saturated fills for decorative bands and blocks (never body text). */
   --tint-neon: #66ff8d;
@@ -70,7 +70,7 @@
 
   --cursor-ring: rgb(0 0 0 / 0.55);
   /* Hover fill for solid green buttons (light uses a darker green, not a glow). */
-  --accent-hover: #05661f;
+  --accent-hover: #034d17;
   --bot-shell-from: #ffffff;
   --bot-shell-to: #d2d9d4;
   --watermark: rgb(0 0 0 / 0.05);
@@ -189,6 +189,12 @@ body {
   font-feature-settings: "ss01", "ss02";
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+}
+
+/* Dark ink on paper reads lighter than light ink on black at the same weight;
+   a touch more weight keeps body copy solid in the light theme. */
+[data-theme="light"] body {
+  font-weight: 450;
 }
 
 ::selection {
