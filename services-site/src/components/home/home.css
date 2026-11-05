@@ -341,6 +341,10 @@
 .hm-process[data-anim] .hm-step:not(.is-on) {
   opacity: 0.32;
 }
+/* On paper, upcoming steps stay readable: dimmed, not ghosted. */
+[data-theme="light"] .hm-process[data-anim] .hm-step:not(.is-on) {
+  opacity: 0.7;
+}
 .hm-process[data-anim] .hm-step:not(.is-on) .hm-step-dot {
   background: var(--bg-elevated);
   color: var(--fg-subtle);
